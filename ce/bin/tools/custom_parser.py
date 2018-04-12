@@ -79,6 +79,10 @@ class CustomParser(object):
                 start_index = self._raw.index('---all_settings')
                 args = self._raw[start_index+1:]
 
+            elif isinstance(self._raw, dict):
+                self._args = next(replace_dash(self._raw))
+                return
+
         except ValueError:
 
             log_message('Could not parse out custom settings.'

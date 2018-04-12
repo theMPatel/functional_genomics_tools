@@ -49,45 +49,51 @@ def parse_cmdline():
 
     # create the parser
     parser = MyArgumentParser(fromfile_prefix_chars='@')
-    
+
     # The environment variables
     parser.add_argument('--clientVersion', type=int)
-    
-    parser.add_argument('--nThreads', 
-        help='Number of threads', type=int, default=4) 
-    
+
+    parser.add_argument('--nThreads',
+        help='Number of threads', type=int, default=4)
+
     parser.add_argument('--localdir', default='./local',
         help='Local working directory', type=str)
 
-    parser.add_argument('--tempdir', 
+    parser.add_argument('--tempdir',
         help='Temporary shared directory', type=str)
-    
-    parser.add_argument('--resultsdir', 
+
+    parser.add_argument('--resultsdir',
         help='Results directory', type=str)
-    
-    parser.add_argument('--shareddir', 
-        help='Shared directory', type=str) 
-    
-    parser.add_argument('--toolsdir', 
+
+    parser.add_argument('--shareddir',
+        help='Shared directory', type=str)
+
+    parser.add_argument('--toolsdir',
         default='', help='Tools directory', type=str)
 
     parser.add_argument('--algorithm',
         default='', help='The module to be run', type=str)
 
-    # Before python's parser messes anything up, let's get the custom args
-    with open('settings.txt', 'r') as f:
-        str_cmdline = f.read().strip()
+    # We can now send the settings as a json file:
+    genotyper_settings_path = os.path.join(
+        os.getcwd(), 'genotyper_settings.json')
+
+    genotyper_settings = []
+    if os.path.exists(genotyper_settings_path):
+
+        with open(genotyper_settings_path, 'r') as f:
+            genotyper_settings = json.load(f)
 
     # This will store all of the args globally in
     # the CustomParser class
-    CustomParser(str_cmdline)
-     
+    CustomParser(genotyper_settings)
+
     #get the known arguments of the command line
     try:
         args, remaining = parser.parse_known_args(['@settings.txt'])
     except:
         args, remaining = parser.parse_known_args()
-        
+
     #return the arguments object
     return args, remaining
 
