@@ -273,8 +273,7 @@ class Logger(object):
         # Run the setup
         self.setup()
 
-        if Logger.current is None:
-            Logger.current = self
+        Logger.current = self
 
     def setup(self):
 
@@ -413,8 +412,7 @@ class ResultWriter(object):
 
         valid_dir(self._resultsdir)
 
-        if ResultWriter.current is None:
-            ResultWriter.current = self
+        ResultWriter.current = self
 
     def add_result(self, name, content):
 

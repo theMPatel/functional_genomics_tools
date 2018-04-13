@@ -80,7 +80,6 @@ def parse_cmdline():
 
     genotyper_settings = []
     if os.path.exists(genotyper_settings_path):
-
         with open(genotyper_settings_path, 'r') as f:
             genotyper_settings = json.load(f)
 
@@ -88,7 +87,7 @@ def parse_cmdline():
     # the CustomParser class
     CustomParser(genotyper_settings)
 
-    #get the known arguments of the command line
+    # Get the known arguments of the command line
     try:
         args, remaining = parser.parse_known_args(['@settings.txt'])
     except:
@@ -109,7 +108,7 @@ def main_throw_args(args, remaining, execable_modules):
     # Set up the results writer
     ResultWriter(env.resultsdir)
 
-    # The name of the genotyping module (shouldn't change)
+    # The name of the genotyping module
     module_name = execable_modules.modules[args.algorithm]
 
     # Import the module
