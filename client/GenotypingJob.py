@@ -499,9 +499,6 @@ class GenotypingJob(SingleEntryExecutableJob):
         required_chars = results_to_chars[self._organism].keys()
         required_flds = results_to_fields[self._organism].keys()
 
-        installed = StoredSettings('GENOTYPING_INSTALLED', ispresent=False)
-        installed.Load()
-
         if installed.ispresent:
             return
 
@@ -563,9 +560,6 @@ class GenotypingJob(SingleEntryExecutableJob):
 
         for fld in flds_to_add:
             bns.Database.Db.Fields.Add(fld.capitalize())
-
-        installed = StoredSettings('GENOTYPING_INSTALLED', ispresent=True)
-        installed.Save()
 
         return True
 
