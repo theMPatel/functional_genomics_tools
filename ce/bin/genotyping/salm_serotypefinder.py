@@ -121,34 +121,34 @@ def assembly_run_seqsero(settings, env):
 
     raise NotImplementedError('Assembly based SeqSero not ready yet')
 
-    log_message('Running SeqSero {}'.format(__version__), 2)
+    # log_message('Running SeqSero {}'.format(__version__), 2)
 
-    local_dir = os.path.join(env.localdir, 'seq_sero')
+    # local_dir = os.path.join(env.localdir, 'seq_sero')
 
-    valid_dir(local_dir)
+    # valid_dir(local_dir)
 
-    cmd_args = [
-        'python',
-        os.path.join(env.toolsdir, 'SeqSero', 'SeqSero.py'),
-        '-m', str(4),
-        '-i', settings.query
-    ]
+    # cmd_args = [
+    #     'python',
+    #     os.path.join(env.toolsdir, 'SeqSero', 'SeqSero.py'),
+    #     '-m', str(4),
+    #     '-i', settings.query
+    # ]
 
-    child = sp.Popen(cmd_args, cwd=local_dir, stdout=sp.PIPE, stderr=sp.PIPE)
+    # child = sp.Popen(cmd_args, cwd=local_dir, stdout=sp.PIPE, stderr=sp.PIPE)
 
-    stdout, stderr = child.communicate()
+    # stdout, stderr = child.communicate()
 
-    exit_code = child.returncode
+    # exit_code = child.returncode
 
-    log_ephemeral(stdout.stip())
+    # log_ephemeral(stdout.stip())
 
-    if exit_code:
-        log_error(stderr.strip())
-        raise RuntimeError('Error running SeqSero')
+    # if exit_code:
+    #     log_error(stderr.strip())
+    #     raise RuntimeError('Error running SeqSero')
 
-    log_message('Done running SeqSero', 3)
+    # log_message('Done running SeqSero', 3)
 
-    return local_dir
+    # return local_dir
 
 def reads_run_seqsero(settings, env):
     # 
