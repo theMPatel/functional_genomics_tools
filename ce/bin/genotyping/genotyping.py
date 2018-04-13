@@ -176,7 +176,7 @@ def main(args, remaining, env):
         genotyper_settings = organism_config.genotypers[genotyper]
 
         # Merge the custom args with the client requested arguments
-        genotyper_settings = CustomParser.update(genotyper, genotyper_settings)
+        CustomParser.update(genotyper, genotyper_settings)
 
         # Add the query path to the settings
         genotyper_settings.query = query_filename
