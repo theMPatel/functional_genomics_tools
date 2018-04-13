@@ -29,10 +29,7 @@ from tools.environment import (
     ResultWriter,
     log_message,
     log_progress,
-    log_error,
-    # log_algo_info
-    # log_params
-    # get_version_info
+    log_error
 )
 
 from tools.custom_parser import CustomParser

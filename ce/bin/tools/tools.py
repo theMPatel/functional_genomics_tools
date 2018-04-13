@@ -250,3 +250,39 @@ def check_mismatches(seq1, seq2):
             mismatches += 1
 
     return mismatches
+
+def parse_paired_files(readFiles):
+    tokens = [['_1.', '_R1_', '_R1'], ['_2.', '_R2_', '_R2']]
+
+    singleFiles = []
+    pairedFiles = []
+    pairedFilesDict = {}
+    for fl in readFiles:
+        isFirst = any(token in fl for token in tokens[0])
+        isSecond = any(token in fl for token in tokens[1])
+        if not isFirst and not isSecond:
+            singleFiles.append(fl)
+        else:
+            if isFirst:
+                if fl not in pairedFilesDict:
+                    pairedFilesDict[fl] = [fl, '']
+                else:
+                    pairedFilesDict[fl][0] = fl
+            if isSecond:
+                firstFl = fl
+                for t1, t2 in izip(tokens[0], tokens[1]):
+                    firstFl = firstFl.replace(t2, t1)
+                if firstFl not in pairedFilesDict:
+                    pairedFilesDict[firstFl] = ['', fl]
+                else:
+                    pairedFilesDict[firstFl][1] = fl
+    for flPair in pairedFilesDict.itervalues():
+        if flPair[0] == '' and flPair[1] != '':
+            singleFiles.append(flPair[1])
+            continue
+        if flPair[0] != '' and flPair[1] == '':
+            singleFiles.append(flPair[0])
+            continue
+        pairedFiles.append(flPair)
+
+    return singleFiles, pairedFiles

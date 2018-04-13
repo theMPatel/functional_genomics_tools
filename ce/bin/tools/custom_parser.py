@@ -1,3 +1,15 @@
+###################################################################
+#
+# Functionality to parse commandline arguments formatted in a very
+# specific way. Allows for the ability to have identical parameters
+# Which argparse does not provide functionality for
+# 
+# Author: Milan Patel
+# Contact: mpatel5@cdc.gov
+# Version 1.0
+#
+###################################################################
+
 import os
 import sys
 from ast import literal_eval as leval
@@ -67,7 +79,10 @@ class CustomParser(object):
 
         args = None
 
-        # Try to find the start of the args
+        # Try to find the start of the args.
+        # The arguments should be untouched meaning the client
+        # custom args should be sequential until the args
+        # are no longer genotyper args
         try:
 
             if isinstance(self._raw, list):
@@ -79,6 +94,9 @@ class CustomParser(object):
                 start_index = self._raw.index('---all_settings')
                 args = self._raw[start_index+1:]
 
+            # This module provides the ability to parse the commandline
+            # in case that's how custom args get sent.
+            # Otherwise feed a dictionary to be used as the custom args
             elif isinstance(self._raw, dict):
                 self._args = next(replace_dash(self._raw))
                 return
@@ -102,7 +120,9 @@ class CustomParser(object):
         g_setting_val = None
 
         while i < len(args):
-
+            # The specific genotyper will start with a double dash
+            # followed by a single dash for the parameter
+            # followed by a no dash value for the actual value
             if args[i].startswith('--'):
                 g_name = args[i]
                 i+=1
