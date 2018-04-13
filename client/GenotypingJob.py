@@ -659,26 +659,26 @@ class GenotypingJob(SingleEntryExecutableJob):
             False
         )]
 
-        # ceComm = CeCommunicator.GetCurrent()
-        # if ceComm.GetCommunicationVersion() != '1':
-        #     return []
+        ceComm = CeCommunicator.GetCurrent()
+        if ceComm.GetCommunicationVersion() != '1':
+            return files_to_return
         
-        # if not bns.Database.Experiment(self.Entry, self.ExperType).IsPresent():
-        #     raise RuntimeError("No assembled sequence present for entry '{0}' and experiment type '{1}'. BLAST job canceled.".format(self.Entry.Key, self.ExperType.Name))
+        if not bns.Database.Experiment(self.Entry, self.ExperType).IsPresent():
+            raise RuntimeError("No assembled sequence present for entry '{0}' and experiment type '{1}'. BLAST job canceled.".format(self.Entry.Key, self.ExperType.Name))
 
-        # seq = bns.Sequences.SequenceData(self.Entry.Key, self.ExperType.Name).LoadSequence()
-        # if not seq:
-        #     raise RuntimeError("Internal error: no denovo sequence for entry {0}.".format(self.Entry.Key))
+        seq = bns.Sequences.SequenceData(self.Entry.Key, self.ExperType.Name).LoadSequence()
+        if not seq:
+            raise RuntimeError("Internal error: no denovo sequence for entry {0}.".format(self.Entry.Key))
         
-        # flName = 'denovo.fasta.gz'
-        # fgz = cStringIO.StringIO()
-        # with gzip.GzipFile(flName, 'wb', fileobj=fgz) as fl:
-        #     self.ExportSeqToFasta(seq, fl)
+        flName = 'denovo.fasta.gz'
+        fgz = cStringIO.StringIO()
+        with gzip.GzipFile(flName, 'wb', fileobj=fgz) as fl:
+            self.ExportSeqToFasta(seq, fl)
         
-        # seqCompr = base64.b64encode(fgz.getvalue())
-        # encrypted = False
+        seqCompr = base64.b64encode(fgz.getvalue())
+        encrypted = False
 
-        # files_to_return.append((flName, seqCompr, encrypted))
+        files_to_return.append((flName, seqCompr, encrypted))
 
         return files_to_return
 
