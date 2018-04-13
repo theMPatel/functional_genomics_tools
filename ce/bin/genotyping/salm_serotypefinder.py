@@ -120,6 +120,8 @@ def assembly_run_seqsero(settings, env):
     #                       default=sam; optional)
     # 
 
+    raise NotImplementedError('Assembly based SeqSero not ready yet')
+    
     log_message('Running SeqSero {}'.format(__version__), 2)
 
     local_dir = os.path.join(env.localdir, 'seq_sero')
