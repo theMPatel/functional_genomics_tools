@@ -599,14 +599,15 @@ class GenotypingJob(SingleEntryExecutableJob):
     def GetExtraCmdLine(self):
         # note: params that are given on the constructor to the base class, are automagically on the cmdline
 
-        cmdline_dict = self.ce_genotyper_settings()
+        cmdline = ''
+        # cmdline_dict = self.ce_genotyper_settings()
 
-        cmdline = '---all_settings '
+        # cmdline = '---all_settings '
 
-        for genotyper, settings in cmdline_dict.iteritems():
-            str_here = ' '.join('-{arg} {param}'.format(arg=key, param=value) for \
-                key, value in settings.iteritems())
-            cmdline += '--{0} {1} '.format(genotyper, str_here)
+        # for genotyper, settings in cmdline_dict.iteritems():
+        #     str_here = ' '.join('-{arg} {param}'.format(arg=key, param=value) for \
+        #         key, value in settings.iteritems())
+        #     cmdline += '--{0} {1} '.format(genotyper, str_here)
 
         ceComm = CeCommunicator.GetCurrent()
         if ceComm.GetCommunicationVersion() == '1':
@@ -652,28 +653,32 @@ class GenotypingJob(SingleEntryExecutableJob):
     def GetFiles(self):
 
         # Return as tuples?
-        files_to_return = []
+        files_to_return = [(
+            'genotyper_settings.json',
+            base64.b64encode(json.dumps(self.ce_genotyper_settings())),
+            False
+        )]
 
-        ceComm = CeCommunicator.GetCurrent()
-        if ceComm.GetCommunicationVersion() != '1':
-            return []
+        # ceComm = CeCommunicator.GetCurrent()
+        # if ceComm.GetCommunicationVersion() != '1':
+        #     return []
         
-        if not bns.Database.Experiment(self.Entry, self.ExperType).IsPresent():
-            raise RuntimeError("No assembled sequence present for entry '{0}' and experiment type '{1}'. BLAST job canceled.".format(self.Entry.Key, self.ExperType.Name))
+        # if not bns.Database.Experiment(self.Entry, self.ExperType).IsPresent():
+        #     raise RuntimeError("No assembled sequence present for entry '{0}' and experiment type '{1}'. BLAST job canceled.".format(self.Entry.Key, self.ExperType.Name))
 
-        seq = bns.Sequences.SequenceData(self.Entry.Key, self.ExperType.Name).LoadSequence()
-        if not seq:
-            raise RuntimeError("Internal error: no denovo sequence for entry {0}.".format(self.Entry.Key))
+        # seq = bns.Sequences.SequenceData(self.Entry.Key, self.ExperType.Name).LoadSequence()
+        # if not seq:
+        #     raise RuntimeError("Internal error: no denovo sequence for entry {0}.".format(self.Entry.Key))
         
-        flName = 'denovo.fasta.gz'
-        fgz = cStringIO.StringIO()
-        with gzip.GzipFile(flName, 'wb', fileobj=fgz) as fl:
-            self.ExportSeqToFasta(seq, fl)
+        # flName = 'denovo.fasta.gz'
+        # fgz = cStringIO.StringIO()
+        # with gzip.GzipFile(flName, 'wb', fileobj=fgz) as fl:
+        #     self.ExportSeqToFasta(seq, fl)
         
-        seqCompr = base64.b64encode(fgz.getvalue())
-        encrypted = False
+        # seqCompr = base64.b64encode(fgz.getvalue())
+        # encrypted = False
 
-        files_to_return.append((flName, seqCompr, encrypted))
+        # files_to_return.append((flName, seqCompr, encrypted))
 
         return files_to_return
 
