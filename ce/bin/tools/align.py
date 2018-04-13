@@ -25,6 +25,8 @@ BLASTSettings = namedtuple('BLASTSettings', [
     'include_sequences'
     ])
 
+_platform = os.name
+
 def create_blastdb(fastaflname, dbpath, env):
 
     toolspath = env.toolsdir
@@ -40,6 +42,9 @@ def create_blastdb(fastaflname, dbpath, env):
     # if that is not the case, either fix it in the filesystem
     # or fix the path below, whichever is easier
     makeblastdb = os.path.join(toolspath, 'ncbi-blast/bin/makeblastdb')
+
+    if _platform == 'nt':
+        makeblastdb += '.exe'
 
     # Check to make sure the tool exists
     if not os.path.exists(makeblastdb):
@@ -116,6 +121,12 @@ def align_blast_nodb(query, subject, settings, env):
 
     # blastn path
     blastn = os.path.join(env.toolsdir, 'ncbi-blast/bin/blastn')
+
+    if _platform == 'nt':
+        blastn += '.exe'
+
+    if not os.path.exists(blastn):
+        raise RuntimeError('Missing blastn: {}'.format(blastn))
 
     if not os.path.exists(subject):
         raise RuntimeError('Path to subject sequence does'
@@ -197,6 +208,12 @@ def align_blast(query, blastdb, settings, env):
 
     # blastn path
     blastn = os.path.join(env.toolsdir, 'ncbi-blast/bin/blastn')
+
+    if _platform == 'nt':
+        blastn += '.exe'
+
+    if not os.path.exists(blastn):
+        raise RuntimeError('Missing blastn: {}'.format(blastn))    
 
     # BLAST command
     blastn_args = [
