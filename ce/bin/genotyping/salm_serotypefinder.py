@@ -38,7 +38,6 @@ from functools import partial
 from itertools import combinations
 from collections import namedtuple, defaultdict
 
-
 def set_environ_vars(env):
 
     BWA_PATH = os.path.join(env.toolsdir, 'bwa')
@@ -121,7 +120,7 @@ def assembly_run_seqsero(settings, env):
     # 
 
     raise NotImplementedError('Assembly based SeqSero not ready yet')
-    
+
     log_message('Running SeqSero {}'.format(__version__), 2)
 
     local_dir = os.path.join(env.localdir, 'seq_sero')
@@ -179,7 +178,8 @@ def reads_run_seqsero(settings, env):
         'python',
         os.path.join(env.toolsdir, 'SeqSero', 'SeqSero.py'),
         '-m', str(2),
-        '-i', settings.query_reads
+        '-i', settings.query_reads[0],
+        settings.query_reads[1]
     ]
 
     child = sp.Popen(cmd_args, cwd=local_dir, stdout=sp.PIPE, stderr=sp.PIPE)
@@ -294,7 +294,7 @@ def main(settings, env):
     set_environ_vars(env)
 
     # Run Seq Sero
-    local_dir = assembly_run_seqsero(settings, env)
+    local_dir = reads_run_seqsero(settings, env)
 
     # Parse the results
     results = parse_results(local_dir)

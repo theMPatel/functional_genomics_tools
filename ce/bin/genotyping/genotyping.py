@@ -50,12 +50,16 @@ def parse_settings(args, remaining):
         help="The specific genotyping algorithms you want to run",
         action='append', type=str, default=[])
 
+    parser.add_argument('--query-reads',
+        help='Read files', action='append', type=str, default=[])
+
     # Get the most up-to-date stuffs
     update_args, remaining = parser.parse_known_args(remaining)
 
     # Get the two most necessary arguments
     update_args.query = sanitize_path(update_args.query)
     update_args.configfile = sanitize_path(update_args.configfile)
+    update_args.query_reads = map(sanitize_path, update_args.query_reads)
 
     return update_args
 
@@ -180,6 +184,9 @@ def main(args, remaining, env):
 
         # Add the query path to the settings
         genotyper_settings.query = query_filename
+
+        # Add the reads to the query genotyper
+        genotyper_settings.query_reads = specifc_args.query_reads
 
         #Add the cached_query to the settings
         genotyper_settings.cached_query = cached_query
