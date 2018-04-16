@@ -160,7 +160,8 @@ results_to_chars = {
         
         'virulence': [
                 'virulence.json',
-                'ecoli.pathotype_genotypes.json'
+                'ecoli.pathotype_genotypes.json',
+                'ecoli.stxfinder_genotypes.json'
                 ],
         
         'resistance': [
