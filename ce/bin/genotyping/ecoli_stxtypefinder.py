@@ -169,6 +169,9 @@ def main(settings, env):
 
     dbInfo = StxDbInfo(database_path, ParserForSeq)
 
+    # Just in case that the reads do not get pushed from the client
+    results = {}
+
     # run the finder
     log_message("Determining fixed-position base calls...")
     if 'query_reads' in settings and settings.query_reads:
@@ -201,34 +204,34 @@ def main(settings, env):
             env.threads,
             env
         )
-    # Classic, the below function is not defined anywhere...
-    # else:
-    #     results = FindPositionsOnAssembly(
-    #         dbInfo,
-    #         settings.query,
-    #         settings.assembly.percentIdentity,
-    #         settings.assembly.minRelCoverage,
-    #         env
-    #     )
 
-    # write this into a file
-    allresults = {
-        'date': time_now(),
-        'genotypes': results
+
+    fixed_results = {
+        'results': {},
+        'extra' : []
     }
 
-    write_results('StxTypeFinder_genotypes.json', json.dumps(allresults))
+    found_genotypes = set(g['seqInfo'][0] for g in results)
+    all_genotypes = {g: False for g in dbInfo.Sequences.keys()}
 
-    # parse position information into stx types
-    log_message("Performing stx calling on fixed-position base calls...")
-    stxTypeResults = {}
-    if 'stx-aligned_1' in results:
-        stxTypeResults = {
-            tpe: sum(any(c in results['stx-aligned_1'][p] for c in call[p]) for p in call)
-            for tpe, call in dbInfo.Calls.iteritems()
-        }
+    for g in found_genotypes:
+        all_genotypes[g] = True
 
-    write_results('StxTypeFinder_stxtypes.json', json.dumps(stxTypeResults))
+    fixed_results['results'] = all_genotypes
+    fixed_results['extra'] = results
+
+    write_results('ecoli.stxfinder_genotypes.json', json.dumps(fixed_results))
+
+    # # parse position information into stx types
+    # log_message("Performing stx calling on fixed-position base calls...")
+    # stxTypeResults = {}
+    # if 'stx-aligned_1' in results:
+    #     stxTypeResults = {
+    #         tpe: sum(any(c in results['stx-aligned_1'][p] for c in call[p]) for p in call)
+    #         for tpe, call in dbInfo.Calls.iteritems()
+    #     }
+
+    # write_results('StxTypeFinder_stxtypes.json', json.dumps(stxTypeResults))
 
 
 if __name__ == '__main__':
