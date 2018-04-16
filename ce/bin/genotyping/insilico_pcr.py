@@ -8,11 +8,6 @@
 #
 ###################################################################
 
-# Set the version here. It makes more sense to set it as a variable
-# here because if you edit the file, you can edit the version at the
-# the same time
-__version__ = '1.0.0'
-
 from tools.environment import (
     log_message,
     log_error,
@@ -82,7 +77,7 @@ def main(settings, env):
     
     # Set the initial version information
     log_algo_version(
-        algo_version = __version__,
+        algo_version = None,
         settings = settings,
         env = env
     )

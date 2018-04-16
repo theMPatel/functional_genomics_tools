@@ -33,7 +33,6 @@ from tools.dbinfo import (
 )
 
 from .rb_detection import Main2 as ReadFindPresenceAbsence
-from .rb_detection import __version__
 from collections import namedtuple
 
 def ValidateInput(settings):
@@ -152,7 +151,7 @@ def main(settings, env):
     log_message('Starting running reads based stx subtyping algorithm', 1)
 
     log_algo_version(
-        algo_version=__version__,
+        algo_version=None,
         settings=settings,
         env=env
     )

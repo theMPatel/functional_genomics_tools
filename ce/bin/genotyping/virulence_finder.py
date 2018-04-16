@@ -33,8 +33,6 @@ from .ab_detection import (
     _presence_version
 )
 
-__version__ = _presence_version
-
 import json
 from functools import partial
 from collections import namedtuple, defaultdict
@@ -45,7 +43,7 @@ def main(settings, env):
 
     # Write the version number of the database and algorithm
     log_algo_version(
-        algo_version = __version__,
+        algo_version = None,
         settings = settings,
         env = env
     )

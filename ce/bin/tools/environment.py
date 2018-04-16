@@ -69,7 +69,7 @@ def log_algo_version(algo_version=None, settings=None, env=None):
         with open(version_path, 'r') as f:
 
             version_info = json.load(f)
-            
+
         algo_version = version_info.get('algorithm', algo_version)
         database_version = version_info.get('database', '?')
 

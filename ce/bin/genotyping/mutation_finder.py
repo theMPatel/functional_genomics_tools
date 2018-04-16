@@ -32,11 +32,8 @@ from tools.tools import (
 )
 
 from .ab_detection import (
-    mutation_detector,
-    _mutation_version
+    mutation_detector
 )
-
-__version__ = _mutation_version
 
 import os
 import json
@@ -74,7 +71,7 @@ def main(settings, env):
 
     # Set the initial version information
     log_algo_version(
-        algo_version = __version__,
+        algo_version = None,
         settings = settings,
         env = env
     )

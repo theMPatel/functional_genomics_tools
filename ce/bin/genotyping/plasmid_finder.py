@@ -27,11 +27,8 @@ from tools.dbinfo import (
 )
 
 from .ab_detection import (
-    presence_detector,
-    _presence_version
+    presence_detector
 )
-
-__version__ = _presence_version
 
 import json
 from functools import partial
@@ -58,7 +55,7 @@ def main(settings, env):
 
     # Write the version number of the database and algorithm
     log_algo_version(
-        algo_version = __version__,
+        algo_version = None,
         settings = settings,
         env = env
     )

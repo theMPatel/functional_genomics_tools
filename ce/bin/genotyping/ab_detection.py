@@ -35,8 +35,8 @@ from itertools import combinations, product, izip
 from tools.fancy_tools import Disjointset
 from collections import defaultdict, namedtuple
 
-_presence_version = '1.0.0'
-_mutation_version = '1.0.0'
+_presence_version = None
+_mutation_version = None
 
 GenotypeRegion = namedtuple('GenotypeRegion', ['coverage', 'identity', 'locations'])
 
