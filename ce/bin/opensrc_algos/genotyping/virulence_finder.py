@@ -29,8 +29,7 @@ from tools.dbinfo import (
 )
 
 from .ab_detection import (
-    presence_detector,
-    _presence_version
+    presence_detector
 )
 
 import json

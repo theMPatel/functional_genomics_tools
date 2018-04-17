@@ -10,8 +10,6 @@
 #
 ###################################################################
 
-__version__ = '0.1.0'
-
 import os
 from tools.bowtie import RunBowtie2
 

@@ -35,9 +35,6 @@ from itertools import combinations, product, izip
 from tools.fancy_tools import Disjointset
 from collections import defaultdict, namedtuple
 
-_presence_version = None
-_mutation_version = None
-
 GenotypeRegion = namedtuple('GenotypeRegion', ['coverage', 'identity', 'locations'])
 
 def presence_detector(sequence_database, query_path, cached_query, percent_identity,
