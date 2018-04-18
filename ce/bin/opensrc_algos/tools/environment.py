@@ -55,9 +55,6 @@ def make_pretty(msg, depth):
 
 def log_algo_version(algo_version=None, settings=None, env=None):
 
-    if not all([algo_version, settings, env]):
-        return
-
     database_version = '?'
 
     version_path = settings['version']

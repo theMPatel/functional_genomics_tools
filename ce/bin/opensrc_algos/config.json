@@ -1,5 +1,10 @@
 {
     "modules" : {
         "genotyping": "genotyping.genotyping"
+    },
+
+    "genotyping": {
+        "version" : "[SHAREDDIR]/Genotyping/version.json"
     }
+
 }

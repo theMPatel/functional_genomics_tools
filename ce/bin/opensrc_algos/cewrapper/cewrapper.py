@@ -108,6 +108,12 @@ def main_throw_args(args, remaining, execable_modules):
     # The name of the genotyping module
     module_name = execable_modules.modules[args.algorithm]
 
+    # Module specific configurations...
+    if hasattr(execable_modules, args.algorithm):
+        module_settings = getattr(execable_modules, args.algorithm)
+    else:
+        module_settings = {"version": None}
+
     # Import the module
     module = importlib.import_module(module_name, base_path)
     
@@ -115,7 +121,7 @@ def main_throw_args(args, remaining, execable_modules):
     log_progress(0)
 
     #run the module's main function
-    module.main(args, remaining, env)
+    module.main(args, remaining, env, module_settings)
         
     #and we are done!
     log_progress(100)

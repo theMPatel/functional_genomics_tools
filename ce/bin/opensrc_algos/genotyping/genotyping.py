@@ -24,6 +24,7 @@ from tools.environment import (
     log_message,
     log_error,
     log_progress,
+    log_algo_version,
     sanitize_path
 )
 
@@ -79,7 +80,14 @@ def run_genotyper(genotyper, module_name, settings, env):
     # Run the module!
     module.main(settings, module_env)
 
-def main(args, remaining, env):
+def main(args, remaining, env, module_settings):
+
+    # Log the algorithm version
+    log_algo_version(
+        algo_version = None,
+        settings = module_settings,
+        env = env
+    )
 
     # Log the version that we are using
     log_message('Using version: {} of genotyping algorithm'.format(
