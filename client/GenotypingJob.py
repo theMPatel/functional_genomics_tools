@@ -500,9 +500,6 @@ class GenotypingJob(SingleEntryExecutableJob):
         required_chars = results_to_chars[self._organism].keys()
         required_flds = results_to_fields[self._organism].keys()
 
-        if installed.ispresent:
-            return
-
         missing_chrs = False
         for req in required_chars:
             if not req in bns.Database.Db.ExperimentTypes:

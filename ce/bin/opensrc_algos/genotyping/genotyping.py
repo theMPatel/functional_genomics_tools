@@ -82,6 +82,8 @@ def run_genotyper(genotyper, module_name, settings, env):
 
 def main(args, remaining, env, module_settings):
 
+    log_message('Initializing genotyping algorithm')
+    
     # Log the algorithm version
     log_algo_version(
         algo_version = None,
