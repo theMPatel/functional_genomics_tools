@@ -89,10 +89,6 @@ def main(args, remaining, env, module_settings):
         env = env
     )
 
-    # Log the version that we are using
-    log_message('Using version: {} of genotyping algorithm'.format(
-        str(__version__)))
-
     # Get the arguments that we need
     specific_args = parse_settings(args, remaining)
 
@@ -191,7 +187,7 @@ def main(args, remaining, env, module_settings):
         genotyper_settings.query = query_filename
 
         # Add the reads to the query genotyper
-        genotyper_settings.query_reads = specifc_args.query_reads
+        genotyper_settings.query_reads = specific_args.query_reads
 
         #Add the cached_query to the settings
         genotyper_settings.cached_query = cached_query
