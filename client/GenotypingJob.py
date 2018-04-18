@@ -1,4 +1,4 @@
- #//$autorun;event=PostCreateMainWin
+#//$autorun;event=CreateMainWin
 
 #imports
 import bns
@@ -180,8 +180,8 @@ results_to_fields = {
     },
 
     'Escherichia' : {
-        'Pathotype' : 'ecoli.pathotype_pathotypes.json',
-        'Serotype' : 'ecoli.serotype.json'
+        'Predicted pathotype' : 'ecoli.pathotype_pathotypes.json',
+        'Predicted serotype' : 'ecoli.serotype.json'
     }
 }
 
@@ -425,6 +425,9 @@ class TabPagesDlg(Dlg.Dialogs):
                     name = attr_joiner.join([genotyper, parameter_name])
                     all_settings[name] = default_value
 
+                name = attr_joiner.join([genotyper, 'activated'])
+                all_settings[name] = True
+
             bns_settings = StoredSettings(self._organism.upper(), **all_settings)
             bns_settings.Save()
 
@@ -607,9 +610,10 @@ class GenotypingJob(SingleEntryExecutableJob):
         #         key, value in settings.iteritems())
         #     cmdline += '--{0} {1} '.format(genotyper, str_here)
 
+        localArgsDict = {}
         ceComm = CeCommunicator.GetCurrent()
         if ceComm.GetCommunicationVersion() == '1':
-            localArgsDict['i'] = '"[RESULTSDIR]\\denovo.fasta.gz"'
+            localArgsDict['--query'] = '"[RESULTSDIR]\\denovo.fasta.gz"'
 
         return cmdline
 
@@ -793,17 +797,17 @@ class GenotypingJob(SingleEntryExecutableJob):
                 raise RuntimeError('Could not parse genotyping results for entry: {}'.format(
                     self.Entry.Key))
 
-        def field_processer(organism, results):
+        def field_processer(organism, to_process):
 
-            if not isinstance(results, dict):
+            if not isinstance(to_process, dict):
                 raise RuntimeError('Inappropriate results '
-                    'information of type: {}'.format(type(results)))
+                    'information of type: {}'.format(type(to_process)))
 
             def salmonella():
                 pass
 
             def escherichia():
-                for fld, information in results.iteritems():
+                for fld, information in to_process.iteritems():
                     
                     if not 'results' in information or not \
                         len(information['results']):
@@ -811,11 +815,11 @@ class GenotypingJob(SingleEntryExecutableJob):
 
                     to_field = ''
 
-                    if fld == 'Pathotype':
+                    if fld == 'Predicted pathotype':
 
                         to_field = information['results'][0]
                     
-                    elif fld == 'Serotype':
+                    elif fld == 'Predicted serotype':
 
                         format_str = '{otype} - {htype}'
 
@@ -850,21 +854,21 @@ class GenotypingJob(SingleEntryExecutableJob):
         # with open(testing, 'w') as f:
         #     json.dump(results, f)
 
-        chars_to_results = results_to_chars.get(self._organism, None)
-        flds_to_results = results_to_fields.get(self._organism, None)
+        chars_to_results = results_to_chars.get(self._organism, {})
+        flds_to_results = results_to_fields.get(self._organism, {})
 
         for expr, file_names in chars_to_results.iteritems():
 
             bn_expr = bns.Characters.CharSetType(expr)
             found_chars = { x:2. for x in xrange(bn_expr.GetCount()) }
             new_chars = {}
-            
-            if not all(x in results for x in file_names):
-                continue
 
             for file_name in file_names:
 
-                results_here = results[file_name]
+                results_here = results.get(file_name, None):
+
+                if results_here is None:
+                    continue
 
                 if 'results' not in results_here:
                     continue
