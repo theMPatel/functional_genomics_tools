@@ -27,7 +27,6 @@ from tools.environment import (
     sanitize_path
 )
 
-from . import __version__
 from tools.config import Config
 from tools.custom_parser import CustomParser
 
@@ -142,22 +141,20 @@ def main(args, remaining, env):
     all_genotypers = set(organism_config.genotypers.keys())
 
     # Requested genotypers
-    deactivated_genotypers = set()
+    activated_genotypers = set()
     client_args = CustomParser.args()
 
+    # Below is a desgin choice, only run the things that the client is aware
+    # it can run. Rather than running everything that it didn't request
+    # This allows us the flexibility of adding modules without worrying that
+    # the user will run it without having properly tested it.
     if client_args is not None:
-        deactivated_genotypers.update(key for key in client_args.keys() \
-            if not client_args[key]['activated'])
+        activated_genotypers.update(key for key in client_args.keys() \
+            if client_args[key]['activated'])
 
     # The ones we will eventually run
-    genotypers_to_run = set()
-
-    if not len(deactivated_genotypers):
-        genotypers_to_run = all_genotypers
-
-    else:
-        # Get the intersection of the genotypers
-        genotypers_to_run = all_genotypers - deactivated_genotypers
+    # Get the intersection of the genotypers
+    genotypers_to_run = all_genotypers & activated_genotypers
 
     # For salmonella serotyping, we need to make sure
     # that insilico pcr has been run prior to doing serotype work
