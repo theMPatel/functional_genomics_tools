@@ -831,6 +831,9 @@ class GenotypingJob(SingleEntryExecutableJob):
                             htype = '/'.join(htypes)
                         )
 
+                    if not len(otypes) and not len(htypes):
+                        to_field = ''
+
                     self.Entry.Field(fld).Content = to_field
 
                 bns.Database.Db.Fields.Save()
