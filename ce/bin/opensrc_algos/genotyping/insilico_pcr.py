@@ -455,7 +455,7 @@ class DbInfo(DbInfo):
             # stx2d-3 or stx2d-1
             pretty_name = target.rsplit(
                 '-',
-                maxsplit=1
+                1
             )[0]
 
             results_out['results'][pretty_name] = target in results

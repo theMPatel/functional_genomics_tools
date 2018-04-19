@@ -865,7 +865,7 @@ class GenotypingJob(SingleEntryExecutableJob):
 
             for file_name in file_names:
 
-                results_here = results.get(file_name, None):
+                results_here = results.get(file_name, None)
 
                 if results_here is None:
                     continue
