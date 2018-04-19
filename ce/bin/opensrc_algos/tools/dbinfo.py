@@ -263,7 +263,7 @@ class DbInfo(object):
             gene_name = locus
 
             if gene_name not in results_out['results']:
-                results_out['results'] = False
+                results_out['results'][gene_name] = False
 
             # results_out['results'][gene_name] = gene_name in results_out['results']
 
