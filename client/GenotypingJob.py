@@ -821,14 +821,14 @@ class GenotypingJob(SingleEntryExecutableJob):
                     
                     elif fld == 'Predicted serotype':
 
-                        format_str = '{otype} - {htype}'
+                        format_str = '{otype}:{htype}'
 
                         otypes = set(information['results']['O'])
                         htypes = set(information['results']['H'])
 
                         to_field = format_str.format(
-                            otype = '; '.join(otypes),
-                            htype = '; '.join(htypes)
+                            otype = '/'.join(otypes),
+                            htype = '/'.join(htypes)
                         )
 
                     self.Entry.Field(fld).Content = to_field

@@ -119,7 +119,10 @@ def results_parser(dbinfo, results):
         if notes:
             notes_info = notes[locus]
 
-        gene_name = '_'.join([locus, allele])
+
+        # Updating for better output for surveillance
+        # gene_name = '_'.join([locus, allele])
+        gene_name = allele
 
         # We have both the locus and the resistance conferred
         # results_out['results'][gene_name] = True
@@ -157,8 +160,12 @@ def results_parser(dbinfo, results):
 
         locus = sequence_info.locus
         allele = sequence_info.allele
-        gene_name = '_'.join([locus, allele])
+        # gene_name = '_'.join([locus, allele])
+        gene_name = locus
+        
+        if gene_name in present:
+            continue
 
-        results_out['results'][gene_name] = gene_name in present
+        results_out['results'][gene_name] = False
 
     return results_out

@@ -450,6 +450,14 @@ class DbInfo(DbInfo):
         }
 
         for target in self.targets:
-            results_out['results'][target] = target in results
+
+            # This is an update since we don't need to know whether it was
+            # stx2d-3 or stx2d-1
+            pretty_name = target.rsplit(
+                '-',
+                maxsplit=1
+            )[0]
+
+            results_out['results'][pretty_name] = target in results
 
         return results_out

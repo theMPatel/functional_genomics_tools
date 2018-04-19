@@ -220,7 +220,10 @@ class DbInfo(object):
             # The allele of the found genotype, if there is one
             allele = sequence_info.allele
 
-            gene_name = '_'.join([locus, allele])
+            # gene_name = '_'.join([locus, allele])
+            # Changing the output of the character since only the locus
+            # is important *for surveillance*
+            gene_name = locus
 
             # Add the locus to the results
             results_out['results'][gene_name] = True
@@ -256,9 +259,13 @@ class DbInfo(object):
             locus = sequence_info.locus
             allele = sequence_info.allele
 
-            gene_name = '_'.join([locus, allele])
+            # gene_name = '_'.join([locus, allele])
+            gene_name = locus
 
-            results_out['results'][gene_name] = gene_name in results_out['results']
+            if gene_name not in results_out['results']:
+                results_out['results'] = False
+
+            # results_out['results'][gene_name] = gene_name in results_out['results']
 
         return results_out
     
