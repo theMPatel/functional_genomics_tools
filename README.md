@@ -51,6 +51,8 @@ The opensrc_algos contains all of the **_Python_** modules that can be run as a 
 
 These tools were not developed with the user in mind, meaning it is not necessarily straight forward to run this as a user sitting at a terminal. That said, with software **_ANYTHING IS POSSIBLE!_**
 
+---
+
 ### Basic execution requirements:
 
 ##### -> _cewrapper.py_
