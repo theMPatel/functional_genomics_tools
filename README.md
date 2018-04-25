@@ -17,6 +17,8 @@ This suite of tools is used for detecting biological traits of interest in bacte
 
 ## Usage
 
+### HPC Implementation
+
 Before delving into the usage of this module, you need to first understand the directory heirarchy:
 
 ```
@@ -36,18 +38,39 @@ Before delving into the usage of this module, you need to first understand the d
           │           ├── init.py
           |           |
           |           ....
-          └── executables
-              └── Genotyping
-                  ├── custom.sh
-                  └── Genotyping.bat
-
+          ...
 ```
 
 The opensrc_algos contains all of the **_Python_** modules that can be run as a job. Execution flow:
-  1. User requests certain job which is handled by _cewrapper_
-  2. _cewrapper_ translates the job name into specific modules within the opensrc_algos package and executes
-  3. All job specific execution is handled by the modules in charge, which return with/without error to the _cewrapper_.
-  4. _cewrapper_ notifies user of job success or failure
+  1. User requests certain job which is handled by _cewrapper_;
+  2. _cewrapper_ translates the job name into specific modules within the opensrc_algos package and executes;
+  3. All job specific execution is handled by the modules in charge, which return with/without error to the _cewrapper_;
+  4. _cewrapper_ notifies user of job success or failure;
+  
+
+### Commandline Usage
+
+These tools were not developed with the user in mind, meaning it is not necessarily straight forward to run this as a user sitting at a terminal. That said, with software **_ANYTHING IS POSSIBLE!_**
+
+#### Basic commandline requirements:
+
+##### cewrapper
+
+The cewrapper needs a handful of basic arguments passed to the commandline (or as a file) in order to properly set up logging and the job environment. An important thing to note is that extra arguments that are not defined below can and _should_ be passed along to the cewrapper. These extra arguments are passed along to the job being called. **These are the bare minimum required arguments.**
+
+```
+  [--nThreads]    The number of threads to use for a requested job
+  [--localdir]    A local working directory
+  [--tempdir]     A temporary shared directory
+  [--resultsdir]  A place for a job to put its results
+  [--shareddir]   Datafiles shared by multiple jobs
+  [--toolsdirs]   A great place for external dependecies
+  [--algorithm]   The job to load and execute
+```
+
+#### genotyping
+
+The genotyping handler script needs to have some important arguments passed to it.
 
 ### Citations
 Li H. and Durbin R. (2009) Fast and accurate short read alignment with Burrows-Wheeler Transform. Bioinformatics, 25:1754-60. [PMID: 19451168]
