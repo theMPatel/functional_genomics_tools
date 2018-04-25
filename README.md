@@ -53,7 +53,7 @@ These tools were not developed with the user in mind, meaning it is not necessar
 
 #### Basic argument requirements:
 
-##### cewrapper.py
+##### -> _cewrapper.py_
 
 The cewrapper needs a handful of basic arguments passed to the commandline (or as a file) in order to properly set up logging and the job environment. An important thing to note is that extra arguments that are not defined below can and _should_ be passed along to the cewrapper. These extra arguments are passed along to the job being called. **These are the bare minimum required arguments.**
 
@@ -67,7 +67,7 @@ The cewrapper needs a handful of basic arguments passed to the commandline (or a
         [--algorithm]       The job to load and execute
 ```
 
-#### genotyping.py
+#### -> _genotyping.py_
 
 This is the handler script for the functional genomics pipeline. It will load specific modules and execute different parts of the functional genotyping algorithm depending on the genus of the organism being analyzed.
 
