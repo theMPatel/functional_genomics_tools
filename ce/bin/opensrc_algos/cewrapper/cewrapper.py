@@ -35,6 +35,9 @@ from tools.environment import (
 from tools.custom_parser import CustomParser
 from tools.config import Settings
 
+if __debug__:
+    globals()['pdb'] = __import__('pdb')
+
 class MyArgumentParser(argparse.ArgumentParser):
 
     # Override to split space based cmdline args

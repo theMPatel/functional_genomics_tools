@@ -49,7 +49,6 @@ def sequence_parser(header, sequence, sep = '_'):
         other = parts[3].split('/')
     )
 
-
 def main(settings, env):
 
     log_message('Starting running presence/absence ecoli serotype algorithm', 1)

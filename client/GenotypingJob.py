@@ -104,18 +104,16 @@ default_settings = {
                 "min_merge_overlap": 90.0,
                 "search_fragments": True
             },
-            # "salmonella.serotype" : {
-            #     "percent_identity" : 80.0,
-            #     "confirmed_percent_identity": 90.0,
-            #     "min_coverage": 80.0,
-            #     "discrimination" : 1.5
-            # }
+            "salmonella.serotype" : {
+                "percent_identity" : 80.0,
+                "min_coverage": 70.0,
+                "discrimination" : 2.0
+            }
     }
 }
 
 needs_validation = {
     'percent_identity',
-    'confirmed_percent_identity',
     'min_coverage',
     'discrimination',
     'min_relative_coverage',
@@ -125,7 +123,6 @@ needs_validation = {
 
 settings_names = {
     'percent_identity' : 'Percent Identity (%)',
-    'confirmed_percent_identity': 'Confirmed (%) Identity',
     'discrimination' : 'Discrimination (%)',
     'min_coverage' : "Minimum Coverage (%)",
     'min_relative_coverage' : 'Minimum Relative Coverage (%)',
@@ -178,7 +175,8 @@ results_to_chars = {
 results_to_fields = {
     
     'Salmonella' : {
-        'Serotype' : 'salmonella.serotype.json'
+        'Predicted serotype' : 'salmonella.serotype.json',
+        'Antigenic formula' : 'salmonella.serotype.json'
     },
 
     'Escherichia' : {
@@ -749,7 +747,8 @@ class GenotypingJob(SingleEntryExecutableJob):
 
         splitters = {
             'PulseNetSneakerTest' : '\\sneakerTest', 
-            'PulseNetSneakerDev' : '\\sneakerDev'
+            'PulseNetSneakerDev' : '\\sneakerDev',
+            'PulseNetSneakerProd' : '\\sneakerTest'
         }
 
         if len(network_files) != 2:
@@ -779,14 +778,19 @@ class GenotypingJob(SingleEntryExecutableJob):
             if 'salmonella.serotype' not in cmdline_dict:
                 return
 
-            # Make sure the ANI field exists
-            if 'ANI' not in bns.Database.Db.Fields:
-                cmdline_dict['salmonella.serotype']['ani_value'] = None
+            cmdline_dict['salmonella.serotype']['ani_value'] = None
 
-            else:
-                # Add the value to the dictionary
-                ani_value = bns.Database.EntryField(self.Entry, 'ANI').Content
-                cmdline_dict['salmonella.serotype']['ani_value'] = ani_value
+            # For the future in case that we want to accept
+            # precomputed ANI values
+            # 
+            # # Make sure the ANI field exists
+            # if 'ANI' not in bns.Database.Db.Fields:
+            #     cmdline_dict['salmonella.serotype']['ani_value'] = None
+
+            # else:
+            #     # Add the value to the dictionary
+            #     ani_value = bns.Database.EntryField(self.Entry, 'ANI').Content
+            #     cmdline_dict['salmonella.serotype']['ani_value'] = ani_value
 
         def escherichia():
             return
@@ -836,7 +840,23 @@ class GenotypingJob(SingleEntryExecutableJob):
                     'information of type: {}'.format(type(to_process)))
 
             def salmonella():
-                pass
+                for fld, information in to_process.iteritems():
+
+                    if not 'results' in information or not \
+                        len(information['results']):
+                        continue
+
+                    to_field = ''
+
+                    if fld == 'Predicted serotype':
+                        to_field = information['results'].get('serotype', '')
+
+                    elif fld == 'Antigenic formula':
+                        to_field = information['results'].get('formula', '')
+
+                    self.Entry.Field(fld).Content = to_field
+
+                bns.Database.Db.Fields.Save()
 
             def escherichia():
                 for fld, information in to_process.iteritems():

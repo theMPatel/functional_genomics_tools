@@ -38,8 +38,7 @@ from functools import partial
 from itertools import combinations
 from collections import namedtuple, defaultdict
 
-if __debug__:
-    import pdb
+import pdb
 
 def set_environ_vars(env):
 
@@ -74,7 +73,10 @@ def set_environ_vars(env):
 def parse_results(local_path):
     log_message('Retrieving SeqSero results...', 2)
 
-    results = {}
+    results = {
+        'formula' : '',
+        'serotype': ''
+    }
     results_path = [local_path]
 
     for folder in os.listdir(local_path):
@@ -96,9 +98,6 @@ def parse_results(local_path):
 
             if line.startswith('Predicted antigenic profile:'):
                 results['formula'] = line.split('\t')[1]
-
-            elif line.startswith('Predicted serotype(s):'):
-                results['serotype'] = line.split('\t')[1]
 
     except:
         raise RuntimeError('Could not read SeqSero results file...')
@@ -232,8 +231,8 @@ def interpret_insilicopcr(env, ssp_anitgenic, sslookup):
 
 def interpret_results(results, sslookup, settings, env):
 
-    antigenic_f = results['formula']
-    pred_serotype = results['serotype']
+    formula = results['formula']
+    serotype = ''
 
     if __debug__:
         pdb.set_trace()
@@ -249,25 +248,26 @@ def interpret_results(results, sslookup, settings, env):
         else:
             return results
 
-    real_serotype = ''
+    results['formula'] = '{spp} {formula}'.format(
+        spp=ani_value,
+        formula=formula
+    )
 
     if sslookup.lookup_table.get(ani_value, False) and \
-        sslookup.lookup_table[ani_value].get(antigenic_f, False):
+        sslookup.lookup_table[ani_value].get(formula, False):
 
-        real_serotype = sslookup.lookup_table[ani_value][antigenic_f]
-
-    else:
-        real_serotype = pred_serotype
-
-    if real_serotype != 'to genotyper':
-
-        results['serotype'] = real_serotype
-
-        return results
+        serotype = sslookup.lookup_table[ani_value][formula]
 
     else:
-        results['serotype'] = 'to genotyper'
-        return results
+        serotype = 'Needs further review'
+
+    if serotype != 'to genotyper':
+        results['serotype'] = serotype
+
+    else:
+        results['serotype'] = serotype
+
+    return results
 
     # For now let's just get basic serotpying working before
     # we try to do insilicopcr
@@ -315,7 +315,7 @@ def main(settings, env):
         'extra': []
     }
 
-    write_results('salmonella_serotypefinder.json', json.dumps(results_out))
+    write_results('salmonella.serotype.json', json.dumps(results_out))
 
 class SeqSeroLookup(object):
     # This is going to be a fancy wrapper for a couple 
