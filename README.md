@@ -5,7 +5,6 @@ Functional genomics tools actively used at the Centers for Disease Control and P
 ## Description
 This suite of tools is used for detecting biological traits of interest in bacteria from whole genome sequence data. These tools are specifically built to operate as a job in a High Performance Compute environment.
 
-
 ## Dependencies
 
   1. Python 2.7
@@ -16,7 +15,41 @@ This suite of tools is used for detecting biological traits of interest in bacte
   6. [BowTie 2.3.4.1](https://github.com/BenLangmead/bowtie2)
   7. [SeqSero 1.0](https://github.com/denglab/SeqSero)
 
-#### Citations
+## Usage
+
+Before delving into the usage of this module, you need to first understand the directory heirarchy:
+
+```
+          ce
+          ├── bin
+          │   └── opensrc_algos
+          │       ├── config.json
+          │       ├── cewrapper
+          │       │   ├── __init__.py
+          |       |   |
+          |       |   ....
+          │       ├── genotyping
+          │       │   ├── init.py
+          |       |   |
+          |       |   ....
+          │       └── tools
+          │           ├── init.py
+          |           |
+          |           ....
+          └── executables
+              └── Genotyping
+                  ├── custom.sh
+                  └── Genotyping.bat
+
+```
+
+The opensrc_algos contains all of the **_Python_** modules that can be run as a job. Execution flow:
+  1. User requests certain job which is handled by _cewrapper_
+  2. _cewrapper_ translates the job name into specific modules within the opensrc_algos package and executes
+  3. All job specific execution is handled by the modules in charge, which return with/without error to the _cewrapper_.
+  4. _cewrapper_ notifies user of job success or failure
+
+### Citations
 Li H. and Durbin R. (2009) Fast and accurate short read alignment with Burrows-Wheeler Transform. Bioinformatics, 25:1754-60. [PMID: 19451168]
 
 Li H.*, Handsaker B.*, Wysoker A., Fennell T., Ruan J., Homer N., Marth G., Abecasis G., Durbin R. and 1000 Genome Project Data Processing Subgroup (2009) The Sequence alignment/map (SAM) format and SAMtools. Bioinformatics, 25, 2078-9. [PMID: 19505943]
@@ -26,3 +59,18 @@ Langmead B, Salzberg S. Fast gapped-read alignment with Bowtie 2. Nature Methods
 Zhang S, Yin Y, Jones MB, Zhang Z, Deatherage Kaiser BL, Dinsmore BA, Fitzgerald C, Fields PI, Deng X.
 Salmonella serotype determination utilizing high-throughput genome sequencing data.
 J Clin Microbiol. 2015 May;53(5):1685-92.PMID:25762776
+
+Identification of acquired antimicrobial resistance genes.
+Zankari E, Hasman H, Cosentino S, Vestergaard M, Rasmussen S, Lund O, Aarestrup FM, Larsen MV.
+J Antimicrob Chemother. 2012 Jul 10.
+PMID: 22782487         doi: 10.1093/jac/dks261
+
+Real-time whole-genome sequencing for routine typing, surveillance, and outbreak detection of verotoxigenic Escherichia coli.
+Joensen KG, Scheutz F, Lund O, Hasman H, Kaas RS, Nielsen EM, Aarestrup FM.
+J. Clin. Micobiol. 2014. 52(5): 1501-1510.
+
+PlasmidFinder and pMLST: in silico detection and typing of plasmids.
+Carattoli A, Zankari E, Garcia-Fernandez A, Voldby Larsen M, Lund O, Villa L, Aarestrup FM, Hasman H.
+Antimicrob. Agents Chemother. 2014. April 28th.
+
+Joensen, K. G., A. M. Tetzschner, A. Iguchi, F. M. Aarestrup, and F. Scheutz. 2015. Rapid and easy in silico serotyping of Escherichia coli using whole genome sequencing (WGS) data. J.Clin.Microbiol. 53(8):2410-2426. doi:JCM.00008-15 [pii];10.1128/JCM.00008-15 [doi]
