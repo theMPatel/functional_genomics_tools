@@ -51,7 +51,7 @@ The opensrc_algos contains all of the **_Python_** modules that can be run as a 
 
 These tools were not developed with the user in mind, meaning it is not necessarily straight forward to run this as a user sitting at a terminal. That said, with software **_ANYTHING IS POSSIBLE!_**
 
-#### Basic arguement requirements:
+#### Basic argument requirements:
 
 ##### cewrapper.py
 
@@ -80,6 +80,9 @@ This is the handler script for the functional genomics pipeline. It will load sp
 **NOTE**: _You do not call this module yourself, you let the cewrapper set up the environment and do the module calling_
 
 ### Citations
+
+I would like to thank the below scientists, programmers, colleagues in arms for building incredible tools that save the world on a daily basis. Incredible work should never go unrecognized!
+
 Li H. and Durbin R. (2009) Fast and accurate short read alignment with Burrows-Wheeler Transform. Bioinformatics, 25:1754-60. [PMID: 19451168]
 
 Li H.*, Handsaker B.*, Wysoker A., Fennell T., Ruan J., Homer N., Marth G., Abecasis G., Durbin R. and 1000 Genome Project Data Processing Subgroup (2009) The Sequence alignment/map (SAM) format and SAMtools. Bioinformatics, 25, 2078-9. [PMID: 19505943]
