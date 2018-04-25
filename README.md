@@ -79,6 +79,10 @@ This is the handler script for the functional genomics pipeline. It will load sp
 
 **NOTE**: _You do not call this module yourself, you let the cewrapper set up the environment and do the module calling_
 
+## Acknowledgements
+
+I would like to thank Hannes Pouseele who has been an incredible mentor to me on my journey from the bottom. Thank you for all that you teach me!
+
 ## Citations
 
 **I would like to thank the below scientists, programmers, colleagues in arms for building incredible tools that save the world on a daily basis. Incredible work should never go unrecognized!**
