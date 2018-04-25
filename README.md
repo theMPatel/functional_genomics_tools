@@ -47,30 +47,37 @@ The opensrc_algos contains all of the **_Python_** modules that can be run as a 
   3. All job specific execution is handled by the modules in charge, which return with/without error to the _cewrapper_;
   4. _cewrapper_ notifies user of job success or failure;
   
-
 ### Commandline Usage
 
 These tools were not developed with the user in mind, meaning it is not necessarily straight forward to run this as a user sitting at a terminal. That said, with software **_ANYTHING IS POSSIBLE!_**
 
-#### Basic commandline requirements:
+#### Basic arguement requirements:
 
-##### cewrapper
+##### cewrapper.py
 
 The cewrapper needs a handful of basic arguments passed to the commandline (or as a file) in order to properly set up logging and the job environment. An important thing to note is that extra arguments that are not defined below can and _should_ be passed along to the cewrapper. These extra arguments are passed along to the job being called. **These are the bare minimum required arguments.**
 
 ```
-  [--nThreads]    The number of threads to use for a requested job
-  [--localdir]    A local working directory
-  [--tempdir]     A temporary shared directory
-  [--resultsdir]  A place for a job to put its results
-  [--shareddir]   Datafiles shared by multiple jobs
-  [--toolsdirs]   A great place for external dependecies
-  [--algorithm]   The job to load and execute
+        [--nThreads]        The number of threads to use for a requested job
+        [--localdir]        A local working directory
+        [--tempdir]         A temporary shared directory
+        [--resultsdir]      A place for a job to put its results
+        [--shareddir]       Datafiles shared by multiple jobs
+        [--toolsdirs]       A great place for external dependecies
+        [--algorithm]       The job to load and execute
 ```
 
-#### genotyping
+#### genotyping.py
 
-The genotyping handler script needs to have some important arguments passed to it.
+This is the handler script for the functional genomics pipeline. It will load specific modules and execute different parts of the functional genotyping algorithm depending on the genus of the organism being analyzed.
+
+```
+        [--organism]        Genus of the species needed to be analyzed
+        [--query]           A path to an assembled genome to be analyzed
+        [--query-reads]     Un-assembled read files to be analyzed
+```
+
+**NOTE**: _You do not call this module yourself, you let the cewrapper set up the environment and do the module calling_
 
 ### Citations
 Li H. and Durbin R. (2009) Fast and accurate short read alignment with Burrows-Wheeler Transform. Bioinformatics, 25:1754-60. [PMID: 19451168]
