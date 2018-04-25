@@ -5,16 +5,18 @@ import bns
 import re
 import os
 import gzip
-import cStringIO
+import json
 import base64
 import hashlib
-import json
-import xml.etree.cElementTree as ET
 import traceback
+import cStringIO
+from datetime import datetime
+import xml.etree.cElementTree as ET
 
 from collections import defaultdict
 from functools import partial, wraps
 
+from wgMLST_Client.SchedulerCommonTools import CeStore
 from wgMLST_Client.SchedulerCommonTools.ExecutableJob import ExecutableJob, SingleEntryExecutableJob
 from wgMLST_Client.SchedulerCommonTools.CalculationEngineCommunicator import CeCommunicator
 from wgMLST_Client.SchedulerCommonTools.CalculationEngineRequest import GetJobResults
@@ -601,6 +603,12 @@ class GenotypingJob(SingleEntryExecutableJob):
         # note: params that are given on the constructor to the base class, are automagically on the cmdline
 
         cmdline = ''
+        reads = self.get_readfiles()
+
+        if reads:
+
+            for read in reads:
+                cmdline += '--query-reads {}'.format(read)
         # cmdline_dict = self.ce_genotyper_settings()
 
         # cmdline = '---all_settings '
@@ -615,7 +623,7 @@ class GenotypingJob(SingleEntryExecutableJob):
         if ceComm.GetCommunicationVersion() == '1':
             localArgsDict['--query'] = '"[RESULTSDIR]\\denovo.fasta.gz"'
 
-        return cmdline
+        return cmdline + ' ' + ' '.join('--{0} {1}'.format(key, value) for key, value in localArgsDict.iteritems())
 
     def ce_genotyper_settings(self):
         # Note that if this object (self) changes at runtime, 
@@ -733,6 +741,30 @@ class GenotypingJob(SingleEntryExecutableJob):
         expAttach[settingHash] = denovoHash
         
         return denovoFileId
+
+    def get_readfiles(self, calcComm):
+
+        reads = bns.Database.Experiment(self.Entry.Key, 'wgs').LoadOrCreate()
+        network_files = reads.GetLinks()
+
+        splitters = {
+            'PulseNetSneakerTest' : '\\sneakerTest', 
+            'PulseNetSneakerDev' : '\\sneakerDev'
+        }
+
+        if len(network_files) != 2:
+            return []
+
+        for i in xrange(len(network_files)):
+            for splitter in splitters:
+
+                if splitter in network_files[i]:
+                    to_keep = network_files[i].split(splitter)[1]
+                    to_keep = list(filter(None, to_keep.split(os.sep)))
+                    network_files[i] = os.path.join(splitters[splitter], *to_keep)
+                    break
+
+        return network_files
     
     #add a follow-up job
     def AddJob(self, executableJob):

@@ -44,11 +44,11 @@ def run_ani(query, env):
     local_dir = os.path.join(env.localdir, 'ani', 'local')
     results_dir = os.path.join(env.localdir, 'ani', 'results')
 
-    for dirc in [localdir, results_dir]:
+    for dirc in [local_dir, results_dir]:
         valid_dir(dirc)
 
     # Make sure that the ANI references symlink exists
-    ani_references = os.path.join(env.shareddir, 'ani_references')
+    ani_references = os.path.join(env.shareddir, 'ani_references', 'species.tsv')
 
     if not os.path.exists(ani_references):
         raise RuntimeError('Missing ANI references in shared directory: {}'.format(
@@ -68,9 +68,14 @@ def run_ani(query, env):
         '--nThreads', str(env.threads - 1)
     ]
 
-    child = sp.Popen(cmd_args, stdout=sp.PIPE, stderr=sp.PIPE)
+    child = sp.Popen(
+        cmd_args,
+        stdout=sp.PIPE,
+        stderr=sp.PIPE,
+        cwd=os.path.join(env.localdir, 'ani')
+    )
 
-    child.communitcate()
+    child.communicate()
 
     exit_code = child.returncode
 
@@ -81,7 +86,6 @@ def run_ani(query, env):
         if os.path.exists(error_file):
             with open(error_file, 'r') as f:
                 errors = f.read().strip()
-
 
             log_error(errors)
 
@@ -98,7 +102,6 @@ def run_ani(query, env):
     if os.path.exists(messages_file):
         with open(messages_file, 'r') as f:
             messages = f.read().strip()
-
 
         log_message('ANI output:\n{}'.format(messages), 3)
 
@@ -143,16 +146,14 @@ class ANIParser(object):
             return
 
         perc_identity = settings.percent_identity
-        conf_identity = settings.confirmed_percent_identity
         coverage = settings.min_coverage
         discrimination = settings.discrimination
 
         final_results = []
-        i = 0
 
         for ani_line in self._table:
-            if ani_line[i].ani_score < perc_identity or \
-                ani_line[i].percent_aligned < coverage:
+            if ani_line.ani_score < perc_identity or \
+                ani_line.percent_aligned < coverage:
 
                 final_results.append(ani_line)
 
@@ -160,11 +161,7 @@ class ANIParser(object):
             return
 
         if len(final_results) == 1:
-
-            if final_results[0].ani_score >= conf_identity:
-                return final_results
-            else:
-                return
+            return final_results[0]
 
         # Make sure that the first and the second hit are discriminatory
         final_results.sort(key = lambda x: -x.ani_score)
@@ -172,18 +169,13 @@ class ANIParser(object):
         best_hit = final_results[0]
         second_best = final_results[1]
 
-        # If the first hit is not above confirmed identity, neither will
-        # the second one
-        if best_hit.ani_score < conf_identity:
-            return
-
         numerator = best_hit.ani_score - second_best.ani_score
         denominator = best_hit.ani_score - perc_identity
 
         hit_discrimination = 0.0
         
         if denominator:
-            hit_discrimination = numerator / denominator
+            hit_discrimination = (numerator / denominator) * 100.
 
         # The discrimination between the best and the second best
         # isn't great enough to be informative

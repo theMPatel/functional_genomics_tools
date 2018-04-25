@@ -38,6 +38,9 @@ from functools import partial
 from itertools import combinations
 from collections import namedtuple, defaultdict
 
+if __debug__:
+    import pdb
+
 def set_environ_vars(env):
 
     BWA_PATH = os.path.join(env.toolsdir, 'bwa')
@@ -188,7 +191,7 @@ def reads_run_seqsero(settings, env):
 
     exit_code = child.returncode
 
-    log_ephemeral(stdout.stip())
+    log_ephemeral(stdout.strip())
 
     if exit_code:
         log_error(stderr.strip())
@@ -232,14 +235,10 @@ def interpret_results(results, sslookup, settings, env):
     antigenic_f = results['formula']
     pred_serotype = results['serotype']
 
-    # Determine if the antigenic formula is a part of
-    # the contingency table if it's not then it's likely
-    # that the predicted serotype from SeqSero doesn't
-    # need to be modded
-    if not antigenic_f in sslookup.unresolved_formulas:
-        return results
+    if __debug__:
+        pdb.set_trace()
 
-    if settings.ani_value == 'None':
+    if settings.ani_value is None:
         
         ani_results = run_ani(settings.query, env)
         best = ani_results.interpret(settings)
@@ -257,12 +256,21 @@ def interpret_results(results, sslookup, settings, env):
 
         real_serotype = sslookup.lookup_table[ani_value][antigenic_f]
 
+    else:
+        real_serotype = pred_serotype
+
     if real_serotype != 'to genotyper':
 
         results['serotype'] = real_serotype
 
         return results
 
+    else:
+        results['serotype'] = 'to genotyper'
+        return results
+
+    # For now let's just get basic serotpying working before
+    # we try to do insilicopcr
     ssp_antigenic = ' '.join([ani_value, antigenic_f])
     serotype = interpret_insilicopcr(env, ssp_antigenic, sslookup)
 
@@ -291,7 +299,7 @@ def main(settings, env):
     sslookup = SeqSeroLookup(database_path)
 
     # Set the environment variables for SeqSero:
-    set_environ_vars(env)
+    # set_environ_vars(env)
 
     # Run Seq Sero
     local_dir = reads_run_seqsero(settings, env)
@@ -300,7 +308,7 @@ def main(settings, env):
     results = parse_results(local_dir)
 
     # Interpret the results and update them if need be
-    results = interpret_results(results, sslookup, settings, env)
+    results_out = interpret_results(results, sslookup, settings, env)
 
     results_out = {
         'results': results,
@@ -356,7 +364,7 @@ class SeqSeroLookup(object):
 
         contingency_path = os.path.join(self._db_path, 'contingency_table.csv')
 
-        self.build_contingency(contingency_path)
+        #self.build_contingency(contingency_path)
 
     def build_contingency(self, contingency_path):
 
@@ -368,7 +376,7 @@ class SeqSeroLookup(object):
             for row in reader:
 
                 new_dict = { key:value for key, value in row.iteritems() \
-                    if value in ('+', '-') or key == 'BN Report' }
+                    if value in ('+', '-') or key == 'BN Serotype' }
 
                 temp_table[row['BN Formula']].append(new_dict)
 
@@ -376,7 +384,7 @@ class SeqSeroLookup(object):
 
             headers = set()
             headers.update(x for dct in value for x in dct.keys())
-            headers = headers - set(['BN Report'])
+            headers = list(headers - set(['BN Report']))
 
             for i in range(len(headers)):
 

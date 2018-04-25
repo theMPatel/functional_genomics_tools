@@ -259,6 +259,10 @@ class Environment(object):
     def threads(self):
         return self._threads
 
+    @property
+    def tempdir(self):
+        return self._tempdir
+
 class Logger(object):
     # Provides the logging functionality of the program
 
