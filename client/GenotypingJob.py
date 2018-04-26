@@ -34,7 +34,7 @@ ConfirmBox = bns.Util.Program.ConfirmBox
 
 organism_abbreviations = {
     'EC': 'Escherichia',
-    'SAEN': 'Salmonella'
+    'SALM': 'Salmonella'
     #'LMO' : 'Listeria'
 }
 
@@ -606,7 +606,7 @@ class GenotypingJob(SingleEntryExecutableJob):
         if reads:
 
             for read in reads:
-                cmdline += '--query-reads {}'.format(read)
+                cmdline += '--query-reads {} '.format(read)
         # cmdline_dict = self.ce_genotyper_settings()
 
         # cmdline = '---all_settings '
@@ -621,7 +621,7 @@ class GenotypingJob(SingleEntryExecutableJob):
         if ceComm.GetCommunicationVersion() == '1':
             localArgsDict['--query'] = '"[RESULTSDIR]\\denovo.fasta.gz"'
 
-        return cmdline + ' ' + ' '.join('--{0} {1}'.format(key, value) for key, value in localArgsDict.iteritems())
+        return cmdline + ' '.join('--{0} {1}'.format(key, value) for key, value in localArgsDict.iteritems())
 
     def ce_genotyper_settings(self):
         # Note that if this object (self) changes at runtime, 
@@ -740,7 +740,7 @@ class GenotypingJob(SingleEntryExecutableJob):
         
         return denovoFileId
 
-    def get_readfiles(self, calcComm):
+    def get_readfiles(self):
 
         reads = bns.Database.Experiment(self.Entry.Key, 'wgs').LoadOrCreate()
         network_files = reads.GetLinks()
@@ -778,7 +778,7 @@ class GenotypingJob(SingleEntryExecutableJob):
             if 'salmonella.serotype' not in cmdline_dict:
                 return
 
-            cmdline_dict['salmonella.serotype']['ani_value'] = None
+            cmdline_dict['salmonella.serotype']['ani_value'] = 'None'
 
             # For the future in case that we want to accept
             # precomputed ANI values

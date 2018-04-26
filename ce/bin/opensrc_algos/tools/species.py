@@ -145,9 +145,9 @@ class ANIParser(object):
         if not len(self._table):
             return
 
-        perc_identity = settings.percent_identity
-        coverage = settings.min_coverage
-        discrimination = settings.discrimination
+        perc_identity = settings.percent_identity * 100.
+        coverage = settings.min_coverage * 100. 
+        discrimination = settings.discrimination * 100.
 
         final_results = []
 

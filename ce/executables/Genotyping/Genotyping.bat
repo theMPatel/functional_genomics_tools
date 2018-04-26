@@ -6,7 +6,7 @@
 # of this script, set MYNAME, and this script will invoke the
 # corresponding binary a proper environment.
 CE_STORAGE_CEROOT=/data/ceroot_dev
-MYNAME=Genotyping/python/cewrapper/cewrapper.py
+MYNAME=opensrc_algos/cewrapper/cewrapper.py
 
 export SYSDIR=$CE_STORAGE_CEROOT
 
