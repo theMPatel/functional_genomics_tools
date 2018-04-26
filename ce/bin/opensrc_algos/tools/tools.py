@@ -13,6 +13,7 @@ import sys
 import gzip
 import json
 import shutil
+import subprocess as sp
 from string import maketrans
 from itertools import izip, combinations
 from collections import OrderedDict, namedtuple
@@ -80,6 +81,26 @@ _NUC_SIBLINGS = {
 for nuc, pairs in _NUC_SIBLINGS.iteritems():
     _NUC_SIBLINGS[nuc] = set(pairs)
 
+def popen(args, stdout=None, stderr=None, cwd=None, shell=False):
+
+    if not isinstance(args, list):
+        raise RuntimeError('Provided arguments must be of type list')
+
+    if not stderr:
+        stderr = sp.PIPE
+
+    if not stdout:
+        stdout = sp.PIPE
+
+    if not cwd:
+        cwd=os.getcwd()
+
+    child = sp.Popen(args, stdout=stdout, stderr=stderr, cwd=cwd, shell=shell)
+
+    out, err = child.communicate()
+
+    return child.returncode, out, err 
+
 def unzip_file(fl_in, fl_out):
     # Assumes that the file is a gzipped
     # file
@@ -99,6 +120,22 @@ def unzip_file(fl_in, fl_out):
     # Close the files to be nice
     fl_in.close()
     fl_out.close()
+
+    # Make sure that the file is in proper dos2unix format:
+    dos2unix = ['dos2unix', None]
+
+    # If a file handle was passed, extract the file path
+    if hasattr(fl_out, 'write'):
+        dos2unix[1] = fl_out.name
+
+    else:
+        dos2unix[1] = fl_out
+
+    success = popen(dos2unix)
+
+    if success[0]:
+        raise RuntimeError('Error converting file to dos: {}\n\n'.format(
+            success[1], success[2]))
 
 def is_fasta(path):
     # Check if the file is a fasta format

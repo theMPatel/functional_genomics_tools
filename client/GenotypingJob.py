@@ -513,7 +513,7 @@ class GenotypingJob(SingleEntryExecutableJob):
         missing_flds = False
         for req in required_flds:
             if req not in bns.Database.Db.Fields:
-                missing_flds = False
+                missing_flds = True
                 break
 
         if missing_flds or missing_chrs:

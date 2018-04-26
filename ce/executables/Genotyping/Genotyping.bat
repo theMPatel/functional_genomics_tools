@@ -23,6 +23,11 @@ if [[ -s $PE_HOSTFILE ]]; then
     /bin/cat $PE_HOSTFILE
 fi
 
+# Save the node that this job is run on so if we need to triage
+# we know exactly what machine this was run on
+
+hostname >> "output.txt"
+
 # Could check here that the hosts are all on the same machine
 # i.e. $PE_HOSTFILE should consist of a single line. CalculationEngine
 # executables cannot be run across machines
