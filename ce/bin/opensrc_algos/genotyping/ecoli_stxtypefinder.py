@@ -4,8 +4,8 @@
 # You can use this for basically anything you want to
 # implement into the Calculation Engine
 #
-# Author: Hannes Pouseele
-# Contact: hannes_pouseele@applied-math.com
+# Author: Milan Patel, with some direction from key mentors ;)
+# Contact: mpatel5@cdc.gov
 # Version 1.0
 #
 ###################################################################
@@ -231,39 +231,3 @@ def main(settings, env):
     #     }
 
     # write_results('StxTypeFinder_stxtypes.json', json.dumps(stxTypeResults))
-
-
-if __name__ == '__main__':
-    from collections import namedtuple
-    Settings = namedtuple('Settings', [
-        'localDir',
-        'resultsDir',
-        'sharedDir',
-        'toolsDir',
-        'query',
-        'percentIdentity',
-        'minRelCoverage',
-        'minOverlapForMerge',
-        'searchForFragments'
-    ])
-
-    settings = Settings(
-        r'c:\users\hannes\temp\test_genotyping\local',
-        r'c:\users\hannes\temp\test_genotyping',
-        r'C:\tfs\Internal\Test\Hannes\scripts\genotyping\am_databases',
-        r'C:\Program Files\Applied Maths\BioNumerics 7.6 bleeding edge\SequenceData\Blast',
-        # r'c:\users\hannes\temp\test_genotyping\Escherichia_coli_O157H7_Sakai.fasta.gz',
-        # r'c:\users\hannes\temp\test_genotyping\Shigella_boydii_965_58.fasta.gz',
-        r'c:\users\hannes\temp\test_genotyping\query.fasta',
-        0.9,
-        0.6,
-        0.9,
-        True
-    )
-
-    Main(settings)
-
-
-
-
-

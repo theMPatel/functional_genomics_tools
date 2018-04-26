@@ -55,7 +55,7 @@ fi
 # $@ is command line, writes cmd line to settings.txt
 echo $@ $cmdLineExtra > settings.txt
 # executes BINARY, using in code ResFinder.py settings as defined above
-python $BINARY
+/opt/python/bin/python -O $BINARY
 exitCode=$?
 
 DRMERR="errors.txt"

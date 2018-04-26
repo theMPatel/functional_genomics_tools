@@ -40,6 +40,18 @@ from collections import namedtuple, defaultdict
 
 import pdb
 
+def validate(**kwargs):
+
+    if 'query_reads' in kwargs:
+
+        if len(kwargs['query_reads']) != 2:
+            raise ValueError('No read files provided')
+
+        for file in kwargs['query_reads']:
+            if not os.path.exists(file):
+                raise IOError(
+                    'File not found: {}'.format(file))
+
 def set_environ_vars(env):
 
     BWA_PATH = os.path.join(env.toolsdir, 'bwa')
@@ -200,7 +212,7 @@ def reads_run_seqsero(settings, env):
 
     return local_dir
 
-def interpret_insilicopcr(env, ssp_anitgenic, sslookup):
+def interpret_insilicopcr(env, ssp_antigenic, sslookup):
     
     insilicopcr_path = os.path.join(env.resultsdir, 'insilicopcr.json')
 
@@ -225,7 +237,7 @@ def interpret_insilicopcr(env, ssp_anitgenic, sslookup):
     branch = [[key, value] for key, value in branch.iteritems()]
     branch.sort(key=lambda leg: leg[0])
 
-    serotype = sslookup.contingency_table[ssp_anitgenic].recurse(branch)
+    serotype = sslookup.contingency_table[ssp_antigenic].recurse(branch)
 
     return serotype
 
@@ -290,6 +302,11 @@ def main(settings, env):
         algo_version = __version__,
         settings = settings,
         env = env
+    )
+
+    # Double check to make sure that we have read files
+    validate(
+        query_reads=settings.query_reads
     )
 
     # Get the path of the lookup table
