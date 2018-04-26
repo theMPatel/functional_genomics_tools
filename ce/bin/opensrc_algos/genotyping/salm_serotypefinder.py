@@ -31,6 +31,7 @@ from tools.fancy_tools import (
 )
 
 import os
+import sys
 import csv
 import json
 import subprocess as sp
@@ -189,7 +190,7 @@ def reads_run_seqsero(settings, env):
 
     # The -m option below is for paired-end reads
     cmd_args = [
-        'python',
+        sys.executable,
         os.path.join(env.toolsdir, 'SeqSero', 'SeqSero.py'),
         '-m', str(2),
         '-i', settings.query_reads[0],
@@ -202,7 +203,8 @@ def reads_run_seqsero(settings, env):
 
     exit_code = child.returncode
 
-    log_ephemeral(stdout.strip())
+    log_message(stdout.strip())
+    log_message(stderr.strip())
 
     if exit_code:
         log_error(stderr.strip())
