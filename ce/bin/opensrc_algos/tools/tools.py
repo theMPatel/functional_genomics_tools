@@ -134,7 +134,7 @@ def unzip_file(fl_in, fl_out):
     success = popen(dos2unix)
 
     if success[0]:
-        raise RuntimeError('Error converting file to dos: {}\n\n'.format(
+        raise RuntimeError('Error converting file to dos: {}\n{}\n'.format(
             success[1], success[2]))
 
 def is_fasta(path):
