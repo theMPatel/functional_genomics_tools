@@ -164,7 +164,7 @@ class ANIParser(object):
         final_results = []
 
         for ani_line in self._table:
-            if ani_line.ani_score > perc_identity or \
+            if ani_line.ani_score > perc_identity and \
                 ani_line.percent_aligned > coverage:
 
                 final_results.append(ani_line)
