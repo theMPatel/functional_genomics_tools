@@ -744,11 +744,12 @@ class GenotypingJob(SingleEntryExecutableJob):
 
         reads = bns.Database.Experiment(self.Entry.Key, 'wgs').LoadOrCreate()
         network_files = reads.GetLinks()
+        to_return = []
 
         splitters = {
-            'PulseNetSneakerTest' : '\\sneakerTest', 
+            'PulsenetSneakerTest' : '\\sneakerTest', 
             'PulseNetSneakerDev' : '\\sneakerDev',
-            'PulseNetSneakerProd' : '\\sneakerTest'
+            'PulsenetSneakerProd' : '\\sneakerTest'
         }
 
         if len(network_files) != 2:
@@ -760,10 +761,14 @@ class GenotypingJob(SingleEntryExecutableJob):
                 if splitter in network_files[i]:
                     to_keep = network_files[i].split(splitter)[1]
                     to_keep = list(filter(None, to_keep.split(os.sep)))
-                    network_files[i] = os.path.join(splitters[splitter], *to_keep)
+                    to_return.append(os.path.join(splitters[splitter], *to_keep))
                     break
 
-        return network_files
+        if len(to_return) != 2:
+            return []
+
+        else:
+            return to_return
     
     #add a follow-up job
     def AddJob(self, executableJob):

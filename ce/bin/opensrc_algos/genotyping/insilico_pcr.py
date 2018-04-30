@@ -449,15 +449,21 @@ class DbInfo(DbInfo):
                 results.itervalues() for result in targets]
         }
 
-        for target in self.targets:
+        for result in results_out['extra']:
 
-            # This is an update since we don't need to know whether it was
-            # stx2d-3 or stx2d-1
-            pretty_name = target.rsplit(
-                '-',
-                1
-            )[0]
+            pretty_name = result['primer_id'].rsplit('-', 1)[0]
 
-            results_out['results'][pretty_name] = target in results
+            results_out['results'][pretty_name] = True
+
+        # for target in self.targets:
+
+        #     # This is an update since we don't need to know whether it was
+        #     # stx2d-3 or stx2d-1
+        #     pretty_name = target.rsplit(
+        #         '-',
+        #         1
+        #     )[0]
+
+        #     results_out['results'][pretty_name] = target in results
 
         return results_out
