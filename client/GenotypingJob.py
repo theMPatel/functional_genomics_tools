@@ -34,7 +34,7 @@ ConfirmBox = bns.Util.Program.ConfirmBox
 
 organism_abbreviations = {
     'EC': 'Escherichia',
-    'SALM': 'Salmonella,'
+    'SALM': 'Salmonella',
     'LMO' : 'Listeria',
     'CAMPY' : 'Campylobacter'
 }
@@ -227,7 +227,9 @@ results_to_fields = {
     'Escherichia' : {
         'Pathotype' : 'ecoli.pathotype_pathotypes.json',
         'Serotype' : 'ecoli.serotype.json'
-    }
+    },
+    'Listeria' : {},
+    'Campylobacter' : {}
 }
 
 attr_joiner = '-'
