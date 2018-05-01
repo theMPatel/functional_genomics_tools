@@ -455,6 +455,11 @@ class DbInfo(DbInfo):
 
             results_out['results'][pretty_name] = True
 
+        for target in self._targets:
+            pretty_name = target.rsplit('-', 1)[0]
+
+            results_out['results'][pretty_name] = results_out['results'].get(pretty_name, False)
+
         # for target in self.targets:
 
         #     # This is an update since we don't need to know whether it was

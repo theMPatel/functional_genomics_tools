@@ -34,8 +34,9 @@ ConfirmBox = bns.Util.Program.ConfirmBox
 
 organism_abbreviations = {
     'EC': 'Escherichia',
-    'SALM': 'Salmonella'
-    #'LMO' : 'Listeria'
+    'SALM': 'Salmonella,'
+    'LMO' : 'Listeria',
+    'CAMPY' : 'Campylobacter'
 }
 
 default_settings = {
@@ -48,67 +49,89 @@ default_settings = {
     # for the UX
     # 
     'Escherichia' : {
-            "plasmids": {
-                "percent_identity": 90.0,
-                "min_relative_coverage": 90.0,
-                "min_merge_overlap": 90.0,
-                "search_fragments": False
-            },
-            "virulence": {
-                "percent_identity": 90.0,
-                "min_relative_coverage": 60.0,
-                "min_merge_overlap": 90.0,
-                "search_fragments": True
-            },     
-            "resistance" : {
-                "percent_identity": 90.0,
-                "min_relative_coverage": 60.0,
-                "min_merge_overlap": 90.0,
-                "search_fragments": True
-            },
-            "ecoli.pathotype" : {
-                "percent_identity": 90.0,
-                "min_relative_coverage": 60.0,
-                "min_merge_overlap": 90.0,
-                "search_fragments": True
-            },
-            "ecoli.serotype" : {
-                "percent_identity": 90.0,
-                "min_relative_coverage": 60.0,
-                "min_merge_overlap": 90.0,
-                "search_fragments": False
-            },
-            "insilicopcr": {
-                "max_mismatches": 3,
-                "max_nonIUPAC": 3,
-                "percent_identity": 70.0,
-                "max_length_deviation": 10.0
-            }
+        "plasmids": {
+            "percent_identity": 90.0,
+            "min_relative_coverage": 90.0,
+            "min_merge_overlap": 90.0,
+            "search_fragments": False
+        },
+        "virulence": {
+            "percent_identity": 90.0,
+            "min_relative_coverage": 60.0,
+            "min_merge_overlap": 90.0,
+            "search_fragments": True
+        },     
+        "resistance" : {
+            "percent_identity": 90.0,
+            "min_relative_coverage": 60.0,
+            "min_merge_overlap": 90.0,
+            "search_fragments": True
+        },
+        "ecoli.pathotype" : {
+            "percent_identity": 90.0,
+            "min_relative_coverage": 60.0,
+            "min_merge_overlap": 90.0,
+            "search_fragments": True
+        },
+        "ecoli.serotype" : {
+            "percent_identity": 90.0,
+            "min_relative_coverage": 60.0,
+            "min_merge_overlap": 90.0,
+            "search_fragments": False
+        },
+        "insilicopcr": {
+            "max_mismatches": 3,
+            "max_nonIUPAC": 3,
+            "percent_identity": 70.0,
+            "max_length_deviation": 10.0
+        }
     },
     'Salmonella': {
-            "plasmids": {
-                "percent_identity": 90.0,
-                "min_relative_coverage": 90.0,
-                "min_merge_overlap": 90.0,
-                "search_fragments": False
-            },
-            # "virulence": {
-            #     "percent_identity": 90.0,
-            #     "min_relative_coverage": 60.0,
-            #     "min_merge_overlap": 90.0,
-            #     "search_fragments": True
-            # },
-            "resistance" : {
-                "percent_identity": 90.0,
-                "min_relative_coverage": 60.0,
-                "min_merge_overlap": 90.0,
-                "search_fragments": True
-            },
-            "salmonella.serotype" : {
-                "percent_identity" : 80.0,
-                "min_coverage": 70.0,
-                "discrimination" : 2.0
-            }
+        "plasmids": {
+            "percent_identity": 90.0,
+            "min_relative_coverage": 90.0,
+            "min_merge_overlap": 90.0,
+            "search_fragments": False
+        },
+        "resistance" : {
+            "percent_identity": 90.0,
+            "min_relative_coverage": 60.0,
+            "min_merge_overlap": 90.0,
+            "search_fragments": True
+        },
+        "salmonella.serotype" : {
+            "percent_identity" : 80.0,
+            "min_coverage": 70.0,
+            "discrimination" : 2.0
+        }
+    },
+    'Campylobacter' : {
+        "plasmids": {
+            "percent_identity": 90.0,
+            "min_relative_coverage": 90.0,
+            "min_merge_overlap": 90.0,
+            "search_fragments": False
+        },
+        "resistance" : {
+            "percent_identity": 90.0,
+            "min_relative_coverage": 60.0,
+            "min_merge_overlap": 90.0,
+            "search_fragments": True
+        }
+    },
+    'Listeria' : {
+        "plasmids": {
+            "percent_identity": 90.0,
+            "min_relative_coverage": 90.0,
+            "min_merge_overlap": 90.0,
+            "search_fragments": False
+        },
+        "resistance" : {
+            "percent_identity": 90.0,
+            "min_relative_coverage": 60.0,
+            "min_merge_overlap": 90.0,
+            "search_fragments": True
+        }
     }
 }
 
@@ -169,19 +192,41 @@ results_to_chars = {
         ],
         
         'plasmids': ['plasmids.json']
-    }
+    },
+
+    'Campylobacter': {
+              
+        'resistance': [
+                'resistance.json',
+                'resistance.point.json'
+                ],
+
+        'plasmids': ['plasmids.json']
+        
+        },
+    
+    'Listeria': {
+              
+        'resistance': [
+                'resistance.json',
+                'resistance.point.json'
+                ],
+
+        'plasmids': ['plasmids.json']
+        
+        },
 }
 
 results_to_fields = {
     
     'Salmonella' : {
-        'Predicted serotype' : 'salmonella.serotype.json',
+        'Serotype' : 'salmonella.serotype.json',
         'Antigenic formula' : 'salmonella.serotype.json'
     },
 
     'Escherichia' : {
-        'Predicted pathotype' : 'ecoli.pathotype_pathotypes.json',
-        'Predicted serotype' : 'ecoli.serotype.json'
+        'Pathotype' : 'ecoli.pathotype_pathotypes.json',
+        'Serotype' : 'ecoli.serotype.json'
     }
 }
 
@@ -532,7 +577,8 @@ class GenotypingJob(SingleEntryExecutableJob):
         mapping = {
                 'Not Screened':[0,1],
                 'Present': [1,2],
-                'Absent': [2,3]
+                'Absent': [2,3],
+                'Retired': [3,4]
                 }
 
         chrs_to_add = []
@@ -747,7 +793,7 @@ class GenotypingJob(SingleEntryExecutableJob):
         to_return = []
 
         splitters = {
-            'PulsenetSneakerTest' : '\\sneakerTest', 
+            'PulsenetSneakerTest' : '\\sneakerTest',
             'PulseNetSneakerDev' : '\\sneakerDev',
             'PulsenetSneakerProd' : '\\sneakerTest'
         }
