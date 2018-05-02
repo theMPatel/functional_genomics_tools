@@ -540,6 +540,18 @@ class GenotypingJob(SingleEntryExecutableJob):
             )
 
             self.acceptanceSettings.Save()
+
+        self.define_constants()
+
+    def define_constants(self):
+        self.char_mapping = {
+                'Not Screened':[0,1],
+                'Present': [1,2],
+                'Absent': [2,3],
+                'Retired': [3,4]
+                }
+
+        self.new_char_max = max(x for l in mapping.itervalues() for x in l)
     
     def validate_run(self):
         # These are the expertypes that we need
@@ -577,13 +589,6 @@ class GenotypingJob(SingleEntryExecutableJob):
 
     def install_dependencies(self, chars, flds):
 
-        mapping = {
-                'Not Screened':[0,1],
-                'Present': [1,2],
-                'Absent': [2,3],
-                'Retired': [3,4]
-                }
-
         chrs_to_add = []
 
         for chrname in chars:
@@ -599,7 +604,7 @@ class GenotypingJob(SingleEntryExecutableJob):
 
             chrType = bns.Characters.CharType(expr)
 
-            for name, mapRange in mapping.iteritems():
+            for name, mapRange in self.char_mapping.iteritems():
                 chrType.MapAdd(name,mapRange[0], mapRange[1])
 
         flds_to_add = []
@@ -937,8 +942,8 @@ class GenotypingJob(SingleEntryExecutableJob):
                             htype = '/'.join(htypes)
                         )
 
-                    if not len(otypes) and not len(htypes):
-                        to_field = ''
+                        if not len(otypes) and not len(htypes):
+                            to_field = ''
 
                     self.Entry.Field(fld).Content = to_field
 
@@ -998,7 +1003,7 @@ class GenotypingJob(SingleEntryExecutableJob):
                 bn_expr.NoSave()
 
                 for new in new_chars:
-                    charNr = bn_expr.AddChar(new, 2.)
+                    charNr = bn_expr.AddChar(new, int(self.new_char_max))
                     found_chars[charNr] = 1. if new_chars[new] else 2.
 
                 bn_expr.Save()

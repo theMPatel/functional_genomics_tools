@@ -29,6 +29,7 @@ from .ab_detection import (
 
 
 import json
+import importlib
 from functools import partial
 from collections import namedtuple, defaultdict
 
@@ -90,6 +91,20 @@ def main(settings, env):
 
     # Success!
     log_message('Successfully ran resistance algorithm!', 2)
+
+    # If point finder is in the available modules for this organism
+    # run it
+
+    if hasattr(settings, 'mutation_finder'):
+        mutation_finder_env = env.copy()
+        env.localdir = os.path.join(
+            os.path.dirname(env.localdir),
+            'mutation_finder'
+        )
+
+        mutation_finder = importlib.import_module('.mutation_finder')
+
+        mutation_finder.main(settings.mutation_finder, mutation_finder_env)
 
 def results_parser(dbinfo, results):
 
