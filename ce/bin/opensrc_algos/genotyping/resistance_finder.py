@@ -102,7 +102,7 @@ def main(settings, env):
             'mutation_finder'
         )
 
-        mutation_finder = importlib.import_module('.mutation_finder')
+        mutation_finder = importlib.import_module('.mutation_finder', __package__)
 
         mutation_finder.main(settings.mutation_finder, mutation_finder_env)
 
