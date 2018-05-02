@@ -104,6 +104,7 @@ def main(settings, env):
 
         mutation_finder = importlib.import_module('.mutation_finder', __package__)
 
+        settings.mutation_finder.query = settings.query
         mutation_finder.main(settings.mutation_finder, mutation_finder_env)
 
 def results_parser(dbinfo, results):
