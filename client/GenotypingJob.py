@@ -183,7 +183,8 @@ results_to_chars = {
         'virulence': [
                 'virulence.json',
                 'ecoli.pathotype_genotypes.json',
-                'ecoli.stxfinder_genotypes.json'
+                'ecoli.stxfinder_genotypes.json',
+                'insilicopcr.json'
                 ],
         
         'resistance': [
@@ -901,7 +902,7 @@ class GenotypingJob(SingleEntryExecutableJob):
 
                     to_field = ''
 
-                    if fld == 'Predicted serotype':
+                    if fld == 'Serotype':
                         to_field = information['results'].get('serotype', '')
 
                     elif fld == 'Antigenic formula':
@@ -920,11 +921,11 @@ class GenotypingJob(SingleEntryExecutableJob):
 
                     to_field = ''
 
-                    if fld == 'Predicted pathotype':
+                    if fld == 'Pathotype':
 
                         to_field = information['results'][0]
                     
-                    elif fld == 'Predicted serotype':
+                    elif fld == 'Serotype':
 
                         format_str = '{otype}:{htype}'
 

@@ -25,16 +25,47 @@ from tools.environment import (
 from tools.dbinfo import (
     DbInfo,
     SequenceInfo,
-    sequence_parser
 )
 
 from .ab_detection import (
     presence_detector
 )
 
+import re
 import json
 from functools import partial
 from collections import namedtuple, defaultdict
+
+stx_subunit_parsers = {
+    '_' : re.compile(r'^([^_\n]*)_([^_\n]*)_([^_\n]*)_([^_\n\d])$'),
+    ':' : re.compile(r'^([^:\n]*):([^_:\n]*):([^:\n]*):([^:\n\d])$')
+}
+
+def sequence_parser(header, sequence, sep=':'):
+
+    parts = header.split(sep)
+    parts = list(map(str.strip, parts))
+
+    while len(parts) < 4:
+        parts.append('')
+
+    if stx_subunit_parsers[sep].match(header):
+        return SequenceInfo(
+            locus = parts[0] + parts[3],
+            allele = parts[1],
+            accession= parts[2],
+            sequence = sequence,
+            other = parts[3]
+        )
+
+    else:
+        return SequenceInfo(
+            locus = parts[0],
+            allele = parts[1],
+            accession= parts[2],
+            sequence = sequence,
+            other = parts[3]
+        )
 
 def main(settings, env):
 

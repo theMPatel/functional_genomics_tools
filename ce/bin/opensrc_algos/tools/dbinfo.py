@@ -31,6 +31,7 @@ LocusInfo = namedtuple('LocusInfo', [
 def sequence_parser(header, sequence, sep = ':'):
     # Default parser for the database files
     parts = header.split(sep)
+    parts = list(map(str.strip, parts))
 
     while len(parts) < 4:
         parts.append('')
