@@ -83,13 +83,9 @@ def set_environ_vars(env):
         hts_lib_path
     )
 
-def parse_results(local_path):
+def parse_results(local_path, results):
     log_message('Retrieving SeqSero results...', 2)
 
-    results = {
-        'formula' : '',
-        'serotype': ''
-    }
     results_path = [local_path]
 
     for folder in os.listdir(local_path):
@@ -115,7 +111,6 @@ def parse_results(local_path):
     except:
         raise RuntimeError('Could not read SeqSero results file...')
 
-    return results
 
 def assembly_run_seqsero(settings, env):
     # 
@@ -246,21 +241,11 @@ def interpret_insilicopcr(env, ssp_antigenic, sslookup):
 def interpret_results(results, sslookup, settings, env):
 
     formula = results['formula']
+    ani_value = settings.ani_value
     serotype = ''
 
     if __debug__:
         pdb.set_trace()
-
-    if settings.ani_value is None:
-        
-        ani_results = run_ani(settings.query, env)
-        best = ani_results.interpret(settings)
-        
-        if best is not None:
-            ani_value = best.taxonomy[2].strip()
-
-        else:
-            return results
 
     results['formula'] = '{spp} {formula}'.format(
         spp=ani_value,
@@ -285,8 +270,7 @@ def interpret_results(results, sslookup, settings, env):
 
     # For now let's just get basic serotpying working before
     # we try to do insilicopcr
-    ssp_antigenic = ' '.join([ani_value, antigenic_f])
-    serotype = interpret_insilicopcr(env, ssp_antigenic, sslookup)
+    serotype = interpret_insilicopcr(env, results['formula'], sslookup)
 
     if serotype is None:
         return results
@@ -319,15 +303,31 @@ def main(settings, env):
 
     # Set the environment variables for SeqSero:
     # set_environ_vars(env)
+    results = {
+        'formula' : '',
+        'serotype' : ''
+    }
 
-    # Run Seq Sero
-    local_dir = reads_run_seqsero(settings, env)
+    if not settings.ani_value:
+        ani_results = run_ani(settings.query, env)
+        best = ani_results.interpret(settings)
 
-    # Parse the results
-    results = parse_results(local_dir)
+        if best is not None:
+            settings.ani_value = best.taxonomy[2].strip()
 
-    # Interpret the results and update them if need be
-    results_out = interpret_results(results, sslookup, settings, env)
+        else:
+            results['serotype'] = 'Needs further review'
+
+    if settings.ani_value is not None:
+
+        # Run Seq Sero
+        local_dir = reads_run_seqsero(settings, env)
+
+        # Parse the results
+        parse_results(local_dir, results)
+
+        # Interpret the results and update them if need be
+        interpret_results(results, sslookup, settings, env)
 
     results_out = {
         'results': results,
@@ -354,19 +354,19 @@ class SeqSeroLookup(object):
 
     def load(self):
 
-        lookup_table_files = [
-            'lookup_table.csv',
-            'contingency_table.csv'
-        ]
+        lookup_table_files = {
+            'lookup' : 'lookup_table.csv',
+            'contingency' : 'contingency_table.tsv'
+        }
 
-        for file in lookup_table_files:
+        for file in lookup_table_files.itervalues():
             
             file_path = os.path.join(self._db_path, file)
 
             if not os.path.exists(file_path):
                 raise RuntimeError('Missing: {}'.format(file))
 
-        lookup_path = os.path.join(self._db_path, 'lookup_table.csv')
+        lookup_path = os.path.join(self._db_path, lookup_table_files['lookup'])
 
         with open(lookup_path, 'r') as f:
             reader = csv.reader(f)
@@ -381,7 +381,7 @@ class SeqSeroLookup(object):
                 self.lookup_table[subspecies][seq_sero_form] = final_serotype
                 self.unresolved_formulas.add(seq_sero_form)
 
-        contingency_path = os.path.join(self._db_path, 'contingency_table.csv')
+        contingency_path = os.path.join(self._db_path, lookup_table_files['contingency'])
 
         #self.build_contingency(contingency_path)
 
@@ -403,7 +403,7 @@ class SeqSeroLookup(object):
 
             headers = set()
             headers.update(x for dct in value for x in dct.keys())
-            headers = list(headers - set(['BN Report']))
+            headers = list(headers - set(['BN Serotype']))
 
             for i in range(len(headers)):
 

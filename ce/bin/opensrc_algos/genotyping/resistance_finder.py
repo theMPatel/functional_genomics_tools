@@ -27,9 +27,11 @@ from .ab_detection import (
     presence_detector,
 )
 
+
 import os
 import json
 import importlib
+import mutation_finder
 from functools import partial
 from collections import namedtuple, defaultdict
 
@@ -83,17 +85,19 @@ def main(settings, env):
     )
 
     # Get the results we want to write
-    results_out = sequence_database.results_parser(results, f=results_parser)
+    results_out, notes_out = sequence_database.results_parser(results, f=results_parser)
 
     # Write the results out
     log_message('Writing results out...', 1)
+
     write_results('resistance.json', json.dumps(results_out))
-
-    # Success!
-    log_message('Successfully ran resistance algorithm!', 2)
-
+    
     # If point finder is in the available modules for this organism
     # run it
+    mutation_finder_antibios = {
+        'results' : {}, 
+        'extra' : []
+    }
 
     if hasattr(settings, 'mutation_finder'):
         mutation_finder_env = env.copy()
@@ -102,10 +106,26 @@ def main(settings, env):
             'mutation_finder'
         )
 
-        mutation_finder = importlib.import_module('.mutation_finder', __package__)
-
         settings.mutation_finder.query = settings.query
-        mutation_finder.main(settings.mutation_finder, mutation_finder_env)
+        mutation_finder_antibios = mutation_finder.main(settings.mutation_finder, mutation_finder_env)
+
+    # Update the antiobiotic information from pointfinder if there are results
+    for key, value in mutation_finder_antibios['results']:
+
+        if key in notes_out['results']:
+            notes_out['results'][key] = notes_out['results'][key] or value
+
+        else:
+            notes_out['results'][key] = value
+
+    # Update the hit information, this will now include information
+    # from both resfinder and pointfinder now.
+    notes_out['extra'].extend(mutation_finder_antibios['extra'])
+    
+    write_results('resistance.antibios.json', json.dumps(notes_out))
+    
+    # Success!
+    log_message('Successfully ran resistance algorithm!', 2)
 
 def results_parser(dbinfo, results):
 
@@ -117,7 +137,13 @@ def results_parser(dbinfo, results):
         'extra': []
     }
 
-    present = set()
+    notes_out = {
+        'results' : {},
+        'extra' : []
+    }
+
+    present_genes = set()
+    present_antibios = set()
 
     # For each of the result, get the information we need
     for result, geno_regions in results.iteritems():
@@ -131,10 +157,17 @@ def results_parser(dbinfo, results):
         # The allele of the found genotype, if there is one
         allele = sequence_info.allele
         
-        # The specifc locus information
+        # The specific locus information
+        antibiotic = ''
         if notes:
-            notes_info = notes[locus]
+            notes_info = notes.get(locus, None)
 
+            if notes_info is not None:
+                antibiotic = notes_info.antibiotic
+
+
+        if antibiotic:
+            present_antibios.add(antibiotic)
 
         # Updating for better output for surveillance
         # gene_name = '_'.join([locus, allele])
@@ -142,7 +175,7 @@ def results_parser(dbinfo, results):
 
         # We have both the locus and the resistance conferred
         # results_out['results'][gene_name] = True
-        present.add(gene_name)
+        present_genes.add(gene_name)
 
         # This will be the extra information that
         # will get dumped into the entry logs
@@ -154,7 +187,7 @@ def results_parser(dbinfo, results):
                     'identity': geno_region.identity,
                     'coverage': geno_region.coverage,
                     'allele': allele,
-                    'antibiotic' : notes_info.antibiotic,
+                    'antibiotic' : antibiotic,
                     'hits': [
                                 {
                                 'contig_id': hit.query_id,
@@ -169,8 +202,10 @@ def results_parser(dbinfo, results):
         ]
         # Add it to the results out
         results_out['extra'].extend(hit_information)
+        notes_out['extra'].extend(hit_information)
 
-    results_out['results'].update((gene_name, True) for gene_name in present)
+    results_out['results'].update((gene_name, True) for gene_name in present_genes)
+    notes_out['results'].update((antibio, True) for antibio in present_antibios)
 
     for sequence_info in dbinfo.sequences.itervalues():
 
@@ -179,9 +214,18 @@ def results_parser(dbinfo, results):
         # gene_name = '_'.join([locus, allele])
         gene_name = locus
         
-        if gene_name in present:
+        if gene_name in present_genes:
             continue
 
         results_out['results'][gene_name] = False
 
-    return results_out
+    for note in notes.itervalues():
+
+        antibio = note.antibiotic
+
+        if antibio in present_antibios:
+            continue
+
+        notes_out['results'][antibio] = False
+
+    return results_out, notes_out

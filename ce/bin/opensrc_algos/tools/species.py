@@ -181,21 +181,10 @@ class ANIParser(object):
         best_hit = final_results[0]
         second_best = final_results[1]
 
-        numerator = best_hit.ani_score - second_best.ani_score
-        denominator = best_hit.ani_score - perc_identity
-
-        hit_discrimination = 0.0
-        
-        if denominator:
-            hit_discrimination = (numerator / denominator) * 100.
-
-        # The discrimination between the best and the second best
-        # isn't great enough to be informative
-        if hit_discrimination < discrimination:
-            return
-
-        else:
+        if best_hit >= second_best + discrimination:
             return best_hit
+
+        return
 
 if __name__ == '__main__':
 

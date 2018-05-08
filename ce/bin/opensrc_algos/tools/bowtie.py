@@ -48,7 +48,8 @@ def DoBowtie2(indexFl, env, nThreads, singleReadFl=None, pairedReadFl1=None, pai
     cmdLine += ['-S', outputFlName]
 
     log_message("Bowtie cmdline: " + ' '.join(cmdLine), 1)
-    print(os.getenv('PATH'))
+    #print(os.getenv('PATH'))
+    
     child = sp.Popen(cmdLine, stdout=sp.PIPE, stderr=sp.PIPE, shell=True, env={'PATH' : os.getenv('PATH')})
 
     out, err = child.communicate()

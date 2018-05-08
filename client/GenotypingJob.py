@@ -84,7 +84,9 @@ default_settings = {
             "max_nonIUPAC": 3,
             "percent_identity": 70.0,
             "max_length_deviation": 10.0
-        }
+        },
+        # Just use the default settings for now
+        "ecoli.stx" :{}
     },
     'Salmonella': {
         "plasmids": {
@@ -163,7 +165,8 @@ genotyper_names = {
     'ecoli.pathotype': 'Pathotype',
     'ecoli.serotype': 'Serotype',
     'salmonella.serotype' : 'Serotype',
-    'insilicopcr': 'Insilico PCR' 
+    'insilicopcr': 'Insilico PCR',
+    'ecoli.stx' : 'Stx subtyper' 
 }
 
 results_to_chars = {
@@ -173,6 +176,8 @@ results_to_chars = {
                 'resistance.json',
                 'resistance.point.json'
                 ],
+        
+        'antibio' : ['resistance.antibios.json'],
 
         'plasmids': ['plasmids.json']
         
@@ -191,8 +196,9 @@ results_to_chars = {
             'resistance.json',
             'resistance.point.json'
         ],
-        
-        'plasmids': ['plasmids.json']
+        'antibio' : ['resistance.antibios.json'],
+        'plasmids': ['plasmids.json'],
+        'stx' : ['stx_condenser_expr.json']
     },
 
     'Campylobacter': {
@@ -202,6 +208,8 @@ results_to_chars = {
                 'resistance.point.json'
                 ],
 
+        'antibio' : ['resistance.antibios.json'],
+        
         'plasmids': ['plasmids.json']
         
         },
@@ -213,6 +221,8 @@ results_to_chars = {
                 'resistance.point.json'
                 ],
 
+        'antibio' : ['resistance.antibios.json'],
+
         'plasmids': ['plasmids.json']
         
         },
@@ -222,12 +232,13 @@ results_to_fields = {
     
     'Salmonella' : {
         'Serotype' : 'salmonella.serotype.json',
-        'Antigenic formula' : 'salmonella.serotype.json'
+        'AntigenForm' : 'salmonella.serotype.json'
     },
 
     'Escherichia' : {
         'Pathotype' : 'ecoli.pathotype_pathotypes.json',
-        'Serotype' : 'ecoli.serotype.json'
+        'Serotype' : 'ecoli.serotype.json',
+        'Toxin' : 'stx_condenser_flds.json'
     },
     'Listeria' : {},
     'Campylobacter' : {}
@@ -522,6 +533,7 @@ class GenotypingJob(SingleEntryExecutableJob):
             entry
         )
 
+        self.define_constants()
         self._org_abbrv = CuratorDbItf.GetCuratorItf().GetOrganismAbbrev()
         
         self._organism = organism_abbreviations.get(self._org_abbrv, None)
@@ -541,7 +553,14 @@ class GenotypingJob(SingleEntryExecutableJob):
 
             self.acceptanceSettings.Save()
 
-        self.define_constants()
+        elif self.acceptanceSettings.organism != self._organism:
+            self.acceptanceSettings = StoredSettings(
+                'GENOTYPING',
+                algorithm='genotyping',
+                organism=self._organism
+            )
+
+            self.acceptanceSettings.Save()
 
     def define_constants(self):
         self.char_mapping = {
@@ -551,7 +570,7 @@ class GenotypingJob(SingleEntryExecutableJob):
                 'Retired': [3,4]
                 }
 
-        self.new_char_max = max(x for l in mapping.itervalues() for x in l)
+        self.new_char_max = max(x for l in self.char_mapping.itervalues() for x in l)
     
     def validate_run(self):
         # These are the expertypes that we need
@@ -614,7 +633,7 @@ class GenotypingJob(SingleEntryExecutableJob):
 
 
         for fld in flds_to_add:
-            bns.Database.Db.Fields.Add(fld.capitalize())
+            bns.Database.Db.Fields.Add(fld)
 
         return True
 
@@ -801,8 +820,8 @@ class GenotypingJob(SingleEntryExecutableJob):
         to_return = []
 
         splitters = {
-            'PulsenetSneakerTest' : '\\sneakerTest',
-            'PulseNetSneakerDev' : '\\sneakerDev',
+            'PulseNetSneakerTest' : '\\sneakerTest',
+            'PulsenetSneakerDev' : '\\sneakerDev',
             'PulsenetSneakerProd' : '\\sneakerTest'
         }
 
@@ -854,9 +873,17 @@ class GenotypingJob(SingleEntryExecutableJob):
         def escherichia():
             return
 
+        def campy():
+            return
+
+        def listeria():
+            return
+
         funcs = {
             'Salmonella' : salmonella,
-            'Escherichia' : escherichia
+            'Escherichia' : escherichia,
+            'Campylobacter': campy,
+            'Listeria' : listeria
         }
         # Call the appropriate value
         funcs[organism]()
@@ -910,7 +937,7 @@ class GenotypingJob(SingleEntryExecutableJob):
                     if fld == 'Serotype':
                         to_field = information['results'].get('serotype', '')
 
-                    elif fld == 'Antigenic formula':
+                    elif fld == 'AntigenForm':
                         to_field = information['results'].get('formula', '')
 
                     self.Entry.Field(fld).Content = to_field
@@ -937,13 +964,18 @@ class GenotypingJob(SingleEntryExecutableJob):
                         otypes = set(information['results']['O'])
                         htypes = set(information['results']['H'])
 
-                        to_field = format_str.format(
-                            otype = '/'.join(otypes),
-                            htype = '/'.join(htypes)
-                        )
-
                         if not len(otypes) and not len(htypes):
                             to_field = ''
+                        
+                        else:
+                            to_field = format_str.format(
+                                otype = '/'.join(otypes),
+                                htype = '/'.join(htypes)
+                            )
+
+
+                    elif fld == 'Toxin':
+                        to_field = '; '.join(information['results'])
 
                     self.Entry.Field(fld).Content = to_field
 
@@ -1021,7 +1053,8 @@ class GenotypingJob(SingleEntryExecutableJob):
 
             to_process[fld] = results[file_name]
 
-        field_processer(self._organism, to_process)
+        if to_process:
+            field_processer(self._organism, to_process)
 
         # Save the results as a json dump
         attachment_obj = self.get_attachment('Genotyping results')

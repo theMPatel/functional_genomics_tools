@@ -63,7 +63,7 @@ def parse_settings(args, remaining):
 
     return update_args
 
-def run_genotyper(genotyper, module_name, settings, env):
+def run_genotyper(module_name, settings, env):
 
     # Create the new module name
     module_name = 'genotyping.' + module_name
@@ -79,6 +79,30 @@ def run_genotyper(genotyper, module_name, settings, env):
 
     # Run the module!
     module.main(settings, module_env)
+
+def setup_genotyper(genotyper, module_name, organism_config, env, data):
+
+    # Check to make sure we actually got a module name
+    if module_name is None:
+        raise RuntimeError('Requested module does not'
+            ' exist. This should not have occurred')
+
+    # Get the settings of the genotyper
+    genotyper_settings = organism_config.genotypers[genotyper]
+
+    # Merge the custom args with the client requested arguments
+    CustomParser.update(genotyper, genotyper_settings)
+
+    # Add the query path to the settings
+    genotyper_settings.query = data.get('query', None)
+
+    # Add the reads to the query genotyper
+    genotyper_settings.query_reads = data.get('query_reads', None)
+
+    # Add the cached_query to the settings
+    genotyper_settings.cached_query = data.get('cached_query', None)
+
+    run_genotyper(module_name, genotyper_settings, env)
 
 def main(args, remaining, env, module_settings):
 
@@ -169,29 +193,38 @@ def main(args, remaining, env, module_settings):
     genotypers_to_run = list(genotypers_to_run)
     genotypers_to_run.sort()
 
+    data = {
+        'query' : query_filename,
+        'query_reads' : specific_args.query_reads, 
+        'cached_query' : cached_query
+    }
+
     for genotyper in genotypers_to_run:
 
         # Get the actual file name of the module
         module_name = global_config['modules'][genotyper]
 
-        # Check to make sure we actually got a module name
-        if module_name is None:
-            raise RuntimeError('Requested module does not'
-                ' exist. This should not have occurred')
+        setup_genotyper(
+            genotyper,
+            module_name,
+            organism_config,
+            env,
+            data
+        )
 
-        # Get the settings of the genotyper
-        genotyper_settings = organism_config.genotypers[genotyper]
+    # Get the modules that we always need to run no matter what
+    always_run = organism_config.always_run
 
-        # Merge the custom args with the client requested arguments
-        CustomParser.update(genotyper, genotyper_settings)
+    for genotyper in always_run:
 
-        # Add the query path to the settings
-        genotyper_settings.query = query_filename
+        module_name = global_config['modules'][genotyper]
 
-        # Add the reads to the query genotyper
-        genotyper_settings.query_reads = specific_args.query_reads
+        setup_genotyper(
+            genotyper,
+            module_name,
+            organism_config,
+            env,
+            data
+        )
 
-        #Add the cached_query to the settings
-        genotyper_settings.cached_query = cached_query
 
-        run_genotyper(genotyper, module_name, genotyper_settings, env)

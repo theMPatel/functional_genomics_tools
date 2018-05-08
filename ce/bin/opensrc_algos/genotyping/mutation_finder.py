@@ -105,7 +105,7 @@ def main(settings, env):
         env
     )
 
-    final_results = sequence_database.results_parser(results, f=results_parser)
+    final_results, antibios_out = sequence_database.results_parser(results, f=results_parser)
 
     log_message('Predicting {} mutations of interest'.format(
         sum(final_results['results'].values())), 3)
@@ -116,6 +116,8 @@ def main(settings, env):
 
     # Success!
     log_message('Successfully ran mutation finder algorithm!', 3)
+
+    return antibios_out
 
 class DbInfo(DbInfo):
 
@@ -245,6 +247,11 @@ def results_parser(dbinfo, interpretations):
         'extra': []
     }
 
+    notes_out = {
+        'results' : {},
+        'extra' : []
+    }
+
     log_message('Determining optimal gene coverages...', 2)
     for gene, mutation in interpretations.iteritems():
 
@@ -273,6 +280,11 @@ def results_parser(dbinfo, interpretations):
                 }
 
             final_results['extra'].append(hit_info)
+            notes_out['extra'].append(hit_info)
+
+            for r in mutation_info['resistance']:
+                notes_out['results'][r] = True
+
     
     for gene, mutation_targets in dbinfo.targets.iteritems():
 
@@ -285,6 +297,10 @@ def results_parser(dbinfo, interpretations):
                 location = mutation_target.codon_position
             )
 
-            final_results['results'][final_name] = final_name in final_results['results']
+            final_results['results'][final_name] = final_results['results'].get(final_name, False)
 
-    return final_results
+            for r in mutation_info.resistance:
+                notes_out['results'][r] = notes_out['results'].get(r, False)
+
+
+    return final_results, notes_out

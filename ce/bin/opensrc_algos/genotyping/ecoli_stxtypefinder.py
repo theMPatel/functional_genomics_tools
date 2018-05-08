@@ -1,8 +1,6 @@
 ###################################################################
 #
 # Detects the various stx gene variants for Escherichia
-# You can use this for basically anything you want to
-# implement into the Calculation Engine
 #
 # Author: Milan Patel, with some direction from key mentors ;)
 # Contact: mpatel5@cdc.gov

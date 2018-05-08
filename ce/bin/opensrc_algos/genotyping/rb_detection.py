@@ -1,8 +1,6 @@
 ###################################################################
 #
-# Environment specifics for the genotyping algorithm
-# You can use this for basically anything you want to
-# implement into the Calculation Engine
+# Reads based detection tools
 #
 # Author: Milan Patel, with some direction from key mentors ;)
 # Contact: mpatel5@cdc.gov
