@@ -215,7 +215,8 @@ class DbInfo(DbInfo):
                 reference_codon = parts[4].split(',')
                 reference_aa = parts[5].split(',')
                 resistance_aa = parts[6].split(',')
-                resistance = parts[7].split(',')
+                resistance = parts[7].replace('resistance', '')
+                resistance = map(str.strip, resistance.split(','))
                 pm_ids = parts[8].split(',')
 
                 coding_gene = gene_id not in self._rna_genes and \
@@ -299,7 +300,7 @@ def results_parser(dbinfo, interpretations):
 
             final_results['results'][final_name] = final_results['results'].get(final_name, False)
 
-            for r in mutation_info.resistance:
+            for r in mutation_target.resistance:
                 notes_out['results'][r] = notes_out['results'].get(r, False)
 
 

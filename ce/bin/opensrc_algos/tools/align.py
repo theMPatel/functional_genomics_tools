@@ -140,7 +140,7 @@ def align_blast_nodb(query, subject, settings, env):
        '-query', query,
        # Subtract 1 to inlcude room for the parent that
        # calls this
-       '-num_threads', str(env.threads-1),
+       '-num_threads', str(max(1, min(4, env.threads-1))),
        '-out', outputfile,
        '-perc_identity', str(int(100.0*settings.identity)),
        '-outfmt',  '{}'.format(blast_formatstr),
@@ -223,7 +223,7 @@ def align_blast(query, blastdb, settings, env):
        '-db', blastdb,
        # Subtract 1 to inlcude room for the parent that
        # calls this
-       '-num_threads', str(env.threads-1),
+       '-num_threads', str(max(1, min(4, env.threads-1))),
        '-out', outputfile,
        '-perc_identity', str(int(100.0*settings.identity)),
        '-outfmt',  '{}'.format(blast_formatstr),

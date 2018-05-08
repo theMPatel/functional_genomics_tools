@@ -51,7 +51,8 @@ def notes_parser(line, sep=':'):
     while len(parts) < 3:
         parts.append('')
 
-    antibiotic = parts[1].replace(' resistance', '')
+    antibiotic = parts[1].replace('resistance', '')
+    antibiotic = map(str.strip, antibiotic.split(','))
 
     return LocusInfo(
         locus = parts[0],

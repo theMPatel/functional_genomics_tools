@@ -110,7 +110,7 @@ def main(settings, env):
         mutation_finder_antibios = mutation_finder.main(settings.mutation_finder, mutation_finder_env)
 
     # Update the antiobiotic information from pointfinder if there are results
-    for key, value in mutation_finder_antibios['results']:
+    for key, value in mutation_finder_antibios['results'].iteritems():
 
         if key in notes_out['results']:
             notes_out['results'][key] = notes_out['results'][key] or value
@@ -165,9 +165,11 @@ def results_parser(dbinfo, results):
             if notes_info is not None:
                 antibiotic = notes_info.antibiotic
 
-
         if antibiotic:
-            present_antibios.add(antibiotic)
+            if isinstance(antibiotic, list):
+                present_antibios.update(antibiotic)
+            else:
+                present_antibios.add(antibiotic)
 
         # Updating for better output for surveillance
         # gene_name = '_'.join([locus, allele])
@@ -223,9 +225,17 @@ def results_parser(dbinfo, results):
 
         antibio = note.antibiotic
 
-        if antibio in present_antibios:
+        if isinstance(antibio, list):
+            for a in antibio:
+                if a in present_antibios:
+                    continue
+
+                notes_out['results'][a] = False
+
+        elif antibio in present_antibios:
             continue
 
-        notes_out['results'][antibio] = False
+        else:
+            notes_out['results'][antibio] = False
 
     return results_out, notes_out

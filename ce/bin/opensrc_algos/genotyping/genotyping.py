@@ -118,6 +118,17 @@ def main(args, remaining, env, module_settings):
     # Get the arguments that we need
     specific_args = parse_settings(args, remaining)
 
+    for key, value in vars(specific_args).iteritems():
+
+        if isinstance(value, list):
+            log_message(key, 1)
+
+            for v in value:
+                log_message('-> {}'.format(v),2)
+
+        else:
+            log_message('{} - > {}'.format(key, value), 1)
+
     # Make sure the path is a __realpath__
     config_filepath = env.get_sharedpath(specific_args.configfile)
 

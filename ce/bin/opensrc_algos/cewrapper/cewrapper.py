@@ -54,7 +54,7 @@ def parse_cmdline():
     parser.add_argument('--clientVersion', type=int)
 
     parser.add_argument('--nThreads',
-        help='Number of threads', type=int, default=4)
+        help='Number of threads', type=int, default=2)
 
     parser.add_argument('--localdir', default='./local',
         help='Local working directory', type=str)
@@ -107,6 +107,13 @@ def main_throw_args(args, remaining, execable_modules):
 
     # Set up the results writer
     ResultWriter(env.resultsdir)
+
+    # Log the called parameters
+    log_message('Initializing cewrapper..')
+
+    # Write the args out
+    for key, value in vars(args).iteritems():
+        log_message('{} -> {}'.format(key, value), 1)
 
     # The name of the genotyping module
     module_name = execable_modules.modules[args.algorithm]
