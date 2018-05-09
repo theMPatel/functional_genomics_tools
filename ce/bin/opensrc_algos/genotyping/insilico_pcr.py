@@ -60,6 +60,13 @@ def sequence_parser(line):
     while len(parts) < 7:
         parts.append('')
 
+    try:
+        float(parts[6])
+    except:
+        parts[6] = '0'
+    else:
+        parts[6] = float(parts[6])
+
     return PcrTarget(
         primer_id = parts[0],
         locus = parts[1],
@@ -451,12 +458,12 @@ class DbInfo(DbInfo):
 
         for result in results_out['extra']:
 
-            pretty_name = result['primer_id'].rsplit('-', 1)[0]
+            pretty_name = result['locus']
 
             results_out['results'][pretty_name] = True
 
-        for target in self._targets:
-            pretty_name = target.rsplit('-', 1)[0]
+        for target in self._targets.itervalues():
+            pretty_name = target.locus
 
             results_out['results'][pretty_name] = results_out['results'].get(pretty_name, False)
 

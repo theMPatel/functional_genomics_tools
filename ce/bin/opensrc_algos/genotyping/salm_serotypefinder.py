@@ -26,10 +26,6 @@ from tools.species import (
     run_ani
 )
 
-from tools.fancy_tools import (
-    DecisionTree
-)
-
 import os
 import sys
 import csv
@@ -180,6 +176,10 @@ def reads_run_seqsero(settings, env):
 
 def interpret_insilicopcr(env, ssp_antigenic, sslookup):
     
+    # First make sure this is something that we have information for
+    if not sslookup.c_table.get(ssp_antigenic, False):
+        return None
+
     insilicopcr_path = os.path.join(env.resultsdir, 'insilicopcr.json')
 
     if not os.path.exists(insilicopcr_path):
@@ -189,22 +189,37 @@ def interpret_insilicopcr(env, ssp_antigenic, sslookup):
         with open(insilicopcr_path, 'r') as f:
             pcr_results = json.load(f)
 
-    branch = {}
-    # There are 6 typi so you need to split on the - to flatten
-    for key, value in pcr_results['results'].iteritems():
-        new_key = key.split('-')[0]
+    lines = sslookup.c_table[ssp_antigenic]
+    condensed_view = pcr_results.get('results', {})
+    
+    if not condensed_view:
+        return None
+    
+    serotype = ''
 
-        if new_key in branch:
-            branch[new_key] = branch[new_key] or value
+    for line in lines:
+        if serotype:
+            break
 
-        else:
-            branch[new_key] = value
+        sslkp_arr = [k for k in line.iterkeys() if k != 'BN Serotype']
+        sslkp_arr.sort()
 
-    branch = [[key, value] for key, value in branch.iteritems()]
-    branch.sort(key=lambda leg: leg[0])
+        sslkp_vals = [line[k] for k in sslkp_arr]
+        pcr_vals = [condensed_view[k] for k in sslkp_arr]
 
-    serotype = sslookup.contingency_table[ssp_antigenic].recurse(branch)
+        found = True
 
+        for lkp_val, pcr_val in zip(sslkp_vals, pcr_vals):
+
+            if lkp_val == pcr_val:
+                continue
+            else:
+                found = False
+                break
+
+        if found:
+            serotype = line.get('BN Serotype')
+    
     return serotype
 
 def interpret_results(results, sslookup, settings, env):
@@ -233,19 +248,17 @@ def interpret_results(results, sslookup, settings, env):
         results['serotype'] = serotype
 
     else:
-        results['serotype'] = serotype
 
-    return results
+        # For now let's just get basic serotpying working before
+        # we try to do insilicopcr
+        serotype = interpret_insilicopcr(env, results['formula'], sslookup)
 
-    # For now let's just get basic serotpying working before
-    # we try to do insilicopcr
-    serotype = interpret_insilicopcr(env, results['formula'], sslookup)
+        if serotype is None:
+            results['serotype'] = 'Needs further review'
+            return results
 
-    if serotype is None:
-        return results
-
-    else:
-        results['serotype'] = serotype
+        else:
+            results['serotype'] = serotype
 
     return results
 
@@ -350,11 +363,11 @@ class SeqSeroLookup(object):
 
         contingency_path = os.path.join(self._db_path, lookup_table_files['contingency'])
 
-        #self.build_contingency(contingency_path)
+        self.build_contingency(contingency_path)
 
     def build_contingency(self, contingency_path):
 
-        temp_table = defaultdict(list)
+        self._table = defaultdict(list)
 
         with open(contingency_path, 'r') as f:
             reader = csv.DictReader(f)
@@ -364,27 +377,15 @@ class SeqSeroLookup(object):
                 new_dict = { key:value for key, value in row.iteritems() \
                     if value in ('+', '-') or key == 'BN Serotype' }
 
-                temp_table[row['BN Formula']].append(new_dict)
+                for key, value in new_dict.iteritems():
+                    if key == 'BN Serotype':
+                        continue
 
-        for key, value in temp_table.iteritems():
+                    new_dict[key] = value == '+'
 
-            headers = set()
-            headers.update(x for dct in value for x in dct.keys())
-            headers = list(headers - set(['BN Serotype']))
+                self._table[row['BN Formula']].append(new_dict)
 
-            for i in range(len(headers)):
-
-                headers[i].extend(branch[headers[i][0]] == '+' \
-                    for branch in value)
-
-            headers.sort(key=lambda header: header[0])
-
-            headers.append(['BN Report'])
-            headers[-1].extend(branch[headers[-1][0]] for branch in value)
-
-            self.contingency_table[key] = DecisionTree()
-
-            for i in range(1, len(headers[0])):
-                new_branch = [[sub_branch[0], sub_branch[i]] for sub_branch in headers]
-                self.contingency_table[key].update(new_branch)
-
+    @property
+    def c_table(self):
+        return self._table
+    

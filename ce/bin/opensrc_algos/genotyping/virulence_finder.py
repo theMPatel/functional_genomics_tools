@@ -38,7 +38,7 @@ from collections import namedtuple, defaultdict
 
 stx_subunit_parsers = {
     '_' : re.compile(r'^([^_\n]*)_([^_\n]*)_([^_\n]*)_([^_\n\d])$'),
-    ':' : re.compile(r'^([^:\n]*):([^_:\n]*):([^:\n]*):([^:\n\d])$')
+    ':' : re.compile(r'^([^:\n]*):([^:\n]*):([^:\n]*):([^:\n\d])$')
 }
 
 def sequence_parser(header, sequence, sep=':'):

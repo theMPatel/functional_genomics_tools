@@ -105,6 +105,12 @@ default_settings = {
             "percent_identity" : 80.0,
             "min_coverage": 70.0,
             "discrimination" : 2.0
+        },
+        "insilicopcr": {
+            "max_mismatches": 3,
+            "max_nonIUPAC": 3,
+            "percent_identity": 70.0,
+            "max_length_deviation": 10.0
         }
     },
     'Campylobacter' : {
