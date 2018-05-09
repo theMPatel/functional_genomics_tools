@@ -570,7 +570,18 @@ class GenotypingJob(SingleEntryExecutableJob):
                 'Retired': [3,4]
                 }
 
-        self.new_char_max = max(x for l in self.char_mapping.itervalues() for x in l)
+        self.char_present_v = 1.
+        self.char_absent_v = 2.
+        self.char_retired_v = 3.
+
+        # self.new_char_max = max(x for l in self.char_mapping.itervalues() for x in l)
+        # 
+        # At first I thought it would be reasonable to just have the max value be the
+        # max of the mapping. However, the thought occurred to me that old characters would
+        # only get installed with the highest value *at the time*. if we added new mappings
+        # the old characters would not be installed with a number that was large enough.
+        # 100 should be more than enough for these purposes
+        self.new_char_max = 100
     
     def validate_run(self):
         # These are the expertypes that we need
@@ -981,9 +992,17 @@ class GenotypingJob(SingleEntryExecutableJob):
 
                 bns.Database.Db.Fields.Save()
 
+            def listeria():
+                pass
+
+            def campy():
+                pass
+
             organisms = {
                 'Salmonella': salmonella,
-                'Escherichia': escherichia
+                'Escherichia': escherichia,
+                'Listeria' : listeria,
+                'Campylobacter' : campy
             }
 
             if not organisms.get(organism, False):
@@ -1006,7 +1025,8 @@ class GenotypingJob(SingleEntryExecutableJob):
         for expr, file_names in chars_to_results.iteritems():
 
             bn_expr = bns.Characters.CharSetType(expr)
-            found_chars = { x:2. for x in xrange(bn_expr.GetCount()) }
+            found_chars = { x:self.char_absent_v for x in xrange(bn_expr.GetCount()) }
+            retired_chars = set(map(bn_expr.GetChar, found_chars.iterkeys()))
             new_chars = {}
 
             for file_name in file_names:
@@ -1024,9 +1044,10 @@ class GenotypingJob(SingleEntryExecutableJob):
                 for character, presence in chars_here.iteritems():
 
                     charNr = bn_expr.FindChar(character)
+                    retired_chars.discard(character)
 
                     if charNr > 0:
-                        found_chars[charNr] = 1. if presence else 2.
+                        found_chars[charNr] = self.char_present_v if presence else self.char_absent_v
 
                     else:
                         new_chars[character] = presence
@@ -1036,9 +1057,16 @@ class GenotypingJob(SingleEntryExecutableJob):
 
                 for new in new_chars:
                     charNr = bn_expr.AddChar(new, int(self.new_char_max))
-                    found_chars[charNr] = 1. if new_chars[new] else 2.
+                    found_chars[charNr] = self.char_present_v if new_chars[new] else self.char_absent_v
 
                 bn_expr.Save()
+
+            if len(retired_chars):
+
+                indices = map(bn_expr.FindChar, retired_chars)
+
+                for i in indices:
+                    found_chars[i] = self.char_retired_v
 
             vector = [found_chars[i] for i in xrange(bn_expr.GetCount())]
 

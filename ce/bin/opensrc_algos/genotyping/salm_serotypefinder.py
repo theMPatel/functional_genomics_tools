@@ -53,36 +53,6 @@ def validate(**kwargs):
                 raise IOError(
                     'File not found: {}'.format(file))
 
-def set_environ_vars(env):
-
-    BWA_PATH = os.path.join(env.toolsdir, 'bwa')
-
-    if not os.path.exists(BWA_PATH):
-        raise RuntimeError('Missing BWA, a SeqSero dependency')
-
-    SAMTOOLS_PATH = os.path.join(env.toolsdir, 'samtools')
-
-    if not os.path.exists(SAMTOOLS_PATH):
-        raise RuntimeError('Missing Samtools, a SeqSero dependency')
-
-
-    os.environ['bwa'] = BWA_PATH
-    os.environ['samtools'] = SAMTOOLS_PATH
-
-    hts_lib_path = os.path.join(
-        os.path.dirname(
-            os.path.dirname(
-                os.readlink(os.environ['samtools'])
-            ),
-        ),
-        'lib'
-    )
-
-    os.environ['LD_LIBRARY_PATH'] = '{}:{}'.format(
-        os.environ['LD_LIBRARY_PATH'],
-        hts_lib_path
-    )
-
 def parse_results(local_path, results):
     log_message('Retrieving SeqSero results...', 2)
 
@@ -104,6 +74,8 @@ def parse_results(local_path, results):
             content = f.read()
 
         for line in content.split('\n'):
+
+            log_message(line, 3)
 
             if line.startswith('Predicted antigenic profile:'):
                 results['formula'] = line.split('\t')[1]
@@ -197,9 +169,6 @@ def reads_run_seqsero(settings, env):
     stdout, stderr = child.communicate()
 
     exit_code = child.returncode
-
-    log_message(stdout.strip())
-    log_message(stderr.strip())
 
     if exit_code:
         log_error(stderr.strip())
@@ -301,8 +270,6 @@ def main(settings, env):
     # Create the lookup table object
     sslookup = SeqSeroLookup(database_path)
 
-    # Set the environment variables for SeqSero:
-    # set_environ_vars(env)
     results = {
         'formula' : '',
         'serotype' : ''

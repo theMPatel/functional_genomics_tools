@@ -141,7 +141,7 @@ class ANIParser(object):
 
         for line in table:
 
-            line = line.split('\t')
+            line = line.strip().split('\t')
 
             ani_line = ANILine(
                 reference = line[1],
@@ -172,6 +172,15 @@ class ANIParser(object):
         if not len(final_results):
             return
 
+        log_message('ANI Results:', 2)
+        header = ANILine._fields
+        log_message('\t'.join(header), 2)
+
+        for r in final_results:
+
+            out = [getattr(r, h) for h in header]
+            log_message('\t'.join(map(str, out)), 2)
+
         if len(final_results) == 1:
             return final_results[0]
 
@@ -181,7 +190,7 @@ class ANIParser(object):
         best_hit = final_results[0]
         second_best = final_results[1]
 
-        if best_hit >= second_best + discrimination:
+        if best_hit.ani_score >= second_best.ani_score + discrimination:
             return best_hit
 
         return
