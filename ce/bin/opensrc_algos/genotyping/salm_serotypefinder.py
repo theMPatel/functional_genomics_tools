@@ -79,7 +79,6 @@ def parse_results(local_path, results):
     except:
         raise RuntimeError('Could not read SeqSero results file...')
 
-
 def assembly_run_seqsero(settings, env):
     # 
     # Seq_sero options:
