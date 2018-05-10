@@ -228,6 +228,9 @@ def interpret_results(results, sslookup, settings, env):
     ani_value = settings.ani_value
     serotype = ''
 
+    if ani_value == 'V':
+        return results
+    
     if __debug__:
         pdb.set_trace()
 
@@ -235,6 +238,7 @@ def interpret_results(results, sslookup, settings, env):
         spp=ani_value,
         formula=formula
     )
+
 
     if sslookup.lookup_table.get(ani_value, False) and \
         sslookup.lookup_table[ani_value].get(formula, False):
