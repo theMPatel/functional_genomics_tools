@@ -570,10 +570,10 @@ class GenotypingJob(SingleEntryExecutableJob):
 
     def define_constants(self):
         self.char_mapping = {
-                'Not Screened':[0,1],
-                'Present': [1,2],
-                'Absent': [2,3],
-                'Retired': [3,4]
+                'Not Screened':[0,0],
+                'Present': [1,1],
+                'Absent': [2,2],
+                'Retired': [3,3]
                 }
 
         self.char_present_v = 1.
