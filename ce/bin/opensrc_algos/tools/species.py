@@ -152,6 +152,24 @@ class ANIParser(object):
 
             self._table.append(ani_line)
 
+    def build_output_table(self, results):
+
+        final_table = ['\t'.join(['Taxonomy', '% Aligned', 'ANI Score'])]
+
+        for line in results:
+            final_table.append('\t'.join(map(str, [
+                line.taxonomy[2],
+                line.percent_aligned,
+                line.ani_score
+            ])))
+
+        return final_table
+
+    def log_table(self, table, depth=2):
+
+        for line in table:
+            log_message(line, depth)
+
     def interpret(self, settings):
 
         if not len(self._table):
@@ -173,13 +191,8 @@ class ANIParser(object):
             return
 
         log_message('ANI Results:', 2)
-        header = ANILine._fields
-        log_message('\t'.join(header), 2)
-
-        for r in final_results:
-
-            out = [getattr(r, h) for h in header]
-            log_message('\t'.join(map(str, out)), 2)
+        pretty_table = self.build_output_table(final_results)
+        self.log_table(pretty_table, depth=3)
 
         if len(final_results) == 1:
             return final_results[0]

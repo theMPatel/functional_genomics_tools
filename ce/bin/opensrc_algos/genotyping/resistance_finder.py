@@ -29,6 +29,7 @@ from .ab_detection import (
 
 
 import os
+import re
 import json
 import importlib
 import mutation_finder
@@ -127,6 +128,25 @@ def main(settings, env):
     # Success!
     log_message('Successfully ran resistance algorithm!', 2)
 
+gene_parser = re.compile(r'(^[a-zA-Z]*)(?:-\w*)?(?:-[\d]+$)')
+re_comp_type = type(gene_parser)
+def parse_res_genes(string, parser=gene_parser):
+    # The purpose of this function is to return a condensed
+    # name for resistance genes in the format
+    # xxxx-123123 where the numbers are used as a counter
+    # in the resistance finder database
+
+    if isinstance(parser, re_comp_type):
+        match = parser.search(string)
+
+        if match:
+            return match.group(1)
+        
+        return string
+
+    else:
+        return string
+
 def results_parser(dbinfo, results):
 
     sequences = dbinfo.sequences
@@ -173,7 +193,7 @@ def results_parser(dbinfo, results):
 
         # Updating for better output for surveillance
         # gene_name = '_'.join([locus, allele])
-        gene_name = allele
+        gene_name = parse_res_genes(locus)
 
         # We have both the locus and the resistance conferred
         # results_out['results'][gene_name] = True
@@ -213,9 +233,9 @@ def results_parser(dbinfo, results):
 
         locus = sequence_info.locus
         allele = sequence_info.allele
-        # gene_name = '_'.join([locus, allele])
-        gene_name = locus
-        
+
+        gene_name = parse_res_genes(locus)
+
         if gene_name in present_genes:
             continue
 

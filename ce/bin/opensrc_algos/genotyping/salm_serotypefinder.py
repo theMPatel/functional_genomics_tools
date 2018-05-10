@@ -219,7 +219,7 @@ def interpret_insilicopcr(env, ssp_antigenic, sslookup):
 
         if found:
             serotype = line.get('BN Serotype')
-    
+
     return serotype
 
 def interpret_results(results, sslookup, settings, env):
@@ -253,7 +253,7 @@ def interpret_results(results, sslookup, settings, env):
         # we try to do insilicopcr
         serotype = interpret_insilicopcr(env, results['formula'], sslookup)
 
-        if serotype is None:
+        if not serotype:
             results['serotype'] = 'Needs further review'
             return results
 
@@ -370,7 +370,7 @@ class SeqSeroLookup(object):
         self._table = defaultdict(list)
 
         with open(contingency_path, 'r') as f:
-            reader = csv.DictReader(f)
+            reader = csv.DictReader(f, delimiter='\t')
 
             for row in reader:
 
