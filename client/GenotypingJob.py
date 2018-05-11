@@ -511,6 +511,7 @@ class GenotypingJob(SingleEntryExecutableJob):
         self.acceptanceSettings = StoredSettings(
             'GENOTYPING',
             # **** YOU NEED TO CHANGE THIS!!!! ******
+            # **** for the algo you want to run *****
             algorithm='genotyping'
         )
         self.acceptanceSettings.Load()
