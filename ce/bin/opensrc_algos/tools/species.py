@@ -190,15 +190,15 @@ class ANIParser(object):
         if not len(final_results):
             return
 
-        log_message('ANI Results:', 2)
-        pretty_table = self.build_output_table(final_results)
-        self.log_table(pretty_table, depth=3)
-
         if len(final_results) == 1:
             return final_results[0]
 
         # Make sure that the first and the second hit are discriminatory
         final_results.sort(key = lambda x: -x.ani_score)
+
+        log_message('ANI Results:', 2)
+        pretty_table = self.build_output_table(final_results)
+        self.log_table(pretty_table, depth=3)
 
         best_hit = final_results[0]
         second_best = final_results[1]
