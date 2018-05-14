@@ -1,4 +1,4 @@
-#//$autorun;event=CreateMainWin
+#//$autorun;event=PostCreateMainWin
 
 #imports
 import bns

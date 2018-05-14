@@ -57,7 +57,7 @@ def DoBowtie2(indexFl, env, nThreads, singleReadFl=None, pairedReadFl1=None, pai
     if err:
         log_message(err.strip())
 
-    #sp.call(cmdLine, shell=True)
+    sp.call(cmdLine, shell=True)
 
     # the following set of commands "just" use the BAMCoveragePrinter to create the data needed to construct the coverage vector
     if 'BAMCoveragePrinter' in settings:
@@ -68,7 +68,7 @@ def DoBowtie2(indexFl, env, nThreads, singleReadFl=None, pairedReadFl1=None, pai
         for k, v in settings['BAMCoveragePrinter'].iteritems():
             cmdLine.extend([k, str(v)] if v else [k])
         log_message("BAMCoveragePrinter: " + ' '.join(cmdLine), 1)
-        #sp.call(cmdLine, cwd=env.localdir, shell=True)
+        sp.call(cmdLine, cwd=env.localdir, shell=True)
 
         outputFlName_coverages = os.path.join(env.localdir, 'raw_coverages.txt')
         return outputFlName, outputFlName_coverages
