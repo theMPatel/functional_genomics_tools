@@ -227,7 +227,8 @@ def interpret_results(results, sslookup, settings, env):
     ani_value = settings.ani_value
     serotype = ''
 
-    if ani_value == 'V':
+    if ani_value == 'S. bongori':
+        results['serotype'] = 'Needs further review'
         return results
     
     if __debug__:
@@ -237,7 +238,6 @@ def interpret_results(results, sslookup, settings, env):
         spp=ani_value,
         formula=formula
     )
-
 
     if sslookup.lookup_table.get(ani_value, False) and \
         sslookup.lookup_table[ani_value].get(formula, False):
