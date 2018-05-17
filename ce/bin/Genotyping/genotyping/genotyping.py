@@ -12,6 +12,7 @@ import os
 import sys
 import argparse
 import importlib
+import traceback
 
 from tools.tools import (
     unzip_file,
@@ -66,19 +67,24 @@ def parse_settings(args, remaining):
 def run_genotyper(module_name, settings, env):
 
     # Create the new module name
-    module_name = 'genotyping.' + module_name
+    module_full_name = 'genotyping.' + module_name
 
     # Import the modules
-    module = importlib.import_module(module_name)
+    module = importlib.import_module(module_full_name)
 
     # Get a new copy of the global environment
     module_env = env.copy()
 
     # Make a new tmp folder just for this special module
-    module_env.localdir = os.path.join(module_env.localdir, module_name)
+    module_env.localdir = os.path.join(module_env.localdir, module_full_name)
 
     # Run the module!
-    module.main(settings, module_env)
+    try:
+        module.main(settings, module_env)
+
+    except:
+        log_error('Error running genotyper: {}'.format(module_name))
+        log_error(traceback.format_exc())
 
 def setup_genotyper(genotyper, module_name, organism_config, env, data):
 
