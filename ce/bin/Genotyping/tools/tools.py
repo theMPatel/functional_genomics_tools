@@ -92,9 +92,6 @@ def popen(args, stdout=None, stderr=None, cwd=None, shell=False):
     if not stdout:
         stdout = sp.PIPE
 
-    if not cwd:
-        cwd=os.getcwd()
-
     child = sp.Popen(args, stdout=stdout, stderr=stderr, cwd=cwd, shell=shell)
 
     out, err = child.communicate()

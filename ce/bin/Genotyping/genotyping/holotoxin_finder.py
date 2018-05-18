@@ -8,13 +8,21 @@
 #
 ###################################################################
 
+import os
+import sys
+import json
+from functools import partial
+from collections import namedtuple, defaultdict
+
 from tools.environment import (
     log_message,
     log_error,
     log_progress,
     log_ephemeral,
     log_algo_version,
-    write_results
+    write_results,
+    full_path,
+    valid_dir
 )
 
 from tools.dbinfo import (
@@ -24,17 +32,62 @@ from tools.dbinfo import (
 
 from tools.tools import (
     is_fasta,
-    parse_fasta
+    parse_fasta,
+    popen
 )
 
-from .ab_detection import (
-    mutation_detector
-)
+deletions = re.compile(r'-[0-9]+[ACGTNacgtn]+')
+insertions = re.compile(r'\+[0-9]+[ACGTNacgtn]+')
 
-import os
-import json
-from functools import partial
-from collections import namedtuple, defaultdict
+def bowtie_index(reference, env):
+
+    if not isinstance(reference, basestring) or not \
+        os.path.exists(reference):
+
+        raise RuntimeError('Invalid reference file provided: {}'.foramt(
+            str(reference)))
+
+    reference_name = os.path.basename(reference).split('.')[0]
+    index_dir = os.path.join(env.localdir, reference_name, 'index')
+
+    valid_dir(index_dir)
+    
+    bowtie_index_path = os.path.join(env.toolsdir, 'bowtie2', 'bowtie2-build')
+
+    if not os.path.exists(bowtie_index_path):
+        raise RuntimeError('Missing Bowtie2 indexer')
+
+    cmd_args = [
+        os.path.abspath(os.path.realpath(sys.executable)),
+        bowtie_index_path,
+        reference,
+        index_dir
+    ]
+
+    return_code, out, err = popen(cmd_args)
+
+    if return_code:
+        log_error(err.strip())
+        raise RuntimeError('Error building bowtie2 index')
+
+    return index_dir
+
+def paired_bowtie2(read_files, env, index_path='', reference= ''):
+
+    if not isinstance(read_files, list) or not \
+        all(os.path.exists(x) for x in read_files):
+
+        raise RuntimeError('Invalid read files provided')
+
+    bowtie2_path = os.path.join(env.toolsdir, 'bowtie2', 'bowtie2')
+
+    if not os.path.exists(bowtie2_path):
+        raise RuntimeError('Missing bowtie2 executable')
+
+    cmd_args = [
+        os.path.realpath(bow)
+    ]
+
 
 """
  1769  for f in ./*; do mkdir "${f%.*}" && python ~/tools/all_executables/bowtie2-build $f "${f%.*}/index"; done

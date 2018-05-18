@@ -46,6 +46,9 @@ def valid_dir(path):
 def check_dir(path):
     return os.path.isdir(path)
 
+def full_path(path):
+    return os.path.abspath(os.path.realpath(path))
+
 def time_now():
     # Returns the locale specific datetime
     return datetime.now().strftime('%c')
