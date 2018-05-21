@@ -1,6 +1,6 @@
 ###################################################################
 #
-# Assembly based holotoxin finder
+# Reads based holotoxin finder
 #
 # Author: Milan Patel, with some direction from key mentors ;)
 # Contact: mpatel5@cdc.gov
@@ -36,9 +36,8 @@ from tools.tools import (
     popen
 )
 
-deletions = re.compile(r'-[0-9]+[ACGTNacgtn]+')
-insertions = re.compile(r'\+[0-9]+[ACGTNacgtn]+')
-
+# The below code will be re-integrated into
+# bowtie.py, this is cleaner code to replace the old
 def bowtie_index(reference, env, name=''):
 
     if not isinstance(reference, basestring) or not \
@@ -300,4 +299,3 @@ def pile_up_sam(bam_sorted, reference, env):
         raise RuntimeError('Missing pileup_path')
 
     return pileup_path
-
