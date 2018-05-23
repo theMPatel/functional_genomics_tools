@@ -1,4 +1,4 @@
-###################################################################
+ ###################################################################
 #
 # Read based holotoxin finder
 #
@@ -12,14 +12,32 @@ import re
 import os
 import sys
 from copy import deepcopy
-from collections import defaultdict, namedtuple, Counter
+from itertools import izip_longest
+from collections import defaultdict, namedtuple
+
+# from tools.tools import (
+#   counter
+# )
 
 _deletions = re.compile(r'-([0-9]+)([ACGTNacgtn]+)')
 _insertions = re.compile(r'\+([0-9]+)([ACGTNacgtn]+)')
 _substitutions = re.compile(r'[ACGTNacgtn]')
-_remove = re.compile(r'[$<>\*]')
+_remove = re.compile(r'[$<>]')
 _start_read = re.compile(r'[\^]')
 _reference = re.compile(r'[.,]')
+_asterisk = re.compile(r'[\*]')
+
+def counter(l):
+    c = {}
+
+    for i in l:
+
+        if i in c:
+            c[i] += 1
+        else:
+            c[i] = 1
+
+    return c
 
 class ConsensusSequence(object):
 
@@ -126,9 +144,11 @@ class ConsensusSequence(object):
 
     @property
     def coverage(self):
-        return float(self.count) / float(self.stop - self.start + 1)
+        return int(float(self.count) / float(self.stop - self.start + 1))
 
 class ConsensusPosition(object):
+
+    ambiguity_thresh = 1.0 / 3.0
 
     def __init__(self, pos, nuc, count):
 
@@ -136,6 +156,7 @@ class ConsensusPosition(object):
         self._nuc = None
         self._count = -1
         self._ambiguous = False
+        self._analyze = True
 
         self.initialize(pos, nuc, count)
 
@@ -154,6 +175,38 @@ class ConsensusPosition(object):
         else:
             raise ValueError('Nucleotide position must be of type string')
 
+    def analyze(self):
+
+        if not self.ambiguous or not self.analyze:
+            return
+
+        total = float(len(self.nuc))
+        to_keep = set()
+        counts = counter(self.nuc)
+
+        for k, c in counts.iteritems():
+
+            if float(c) / total >= ConsensusPosition.ambiguity_thresh:
+                to_keep.add(k)
+
+        if len(to_keep) == 1:
+            self.nuc = to_keep.pop()
+            self.ambiguous = False
+            self.count = counts[self.nuc]
+
+        else:
+
+            i = 0
+            while i < len(self.nuc):
+                if self.nuc[i] in to_keep:
+                    i += 1
+                else:
+                    # remove the sequence
+                    removed = self.nuc.pop(i)
+
+                    # remove the count of nucleotides
+                    self.count -= len(removed)
+
     @property
     def pos(self):
         return self._pos
@@ -164,7 +217,8 @@ class ConsensusPosition(object):
             self._pos = val
 
         else:
-            raise ValueError('Nucleotide position should be of type int')
+            raise ValueError('Nucleotide position should be of type int;'
+                ' got {} instead'.format(type(val)))
 
     @property
     def nuc(self):
@@ -174,6 +228,7 @@ class ConsensusPosition(object):
     def nuc(self, val):
         if isinstance(val, basestring):
             self._nuc = val
+        
         elif isinstance(val, list):
             if not self.ambiguous:
                 raise ValueError('You must specify that this position'
@@ -182,7 +237,8 @@ class ConsensusPosition(object):
             self._nuc = val
 
         else:
-            raise ValueError('Nucleotide position must be string/list type')
+            raise ValueError('Nucleotide position must be string/list type;'
+                ' got {} instead'.format(type(val)))
 
     @property
     def count(self):
@@ -194,7 +250,8 @@ class ConsensusPosition(object):
             self._count = val
 
         else:
-            raise ValueError('Nucleotide count must be of type int')
+            raise ValueError('Nucleotide count must be of type int;'
+                ' got {} instead'.format(type(val)))
 
     @property
     def ambiguous(self):
@@ -207,8 +264,22 @@ class ConsensusPosition(object):
             self._ambiguous = val
 
         else:
-            raise ValueError('Ambiguity must be of type bool')    
+            raise ValueError('Ambiguity must be of type bool;'
+                ' got {} instead'.format(type(val)))
+
+    @property
+    def analyze(self):
+        return self._analyze
     
+    @analyze.setter
+    def analyze(self, val):
+
+        if isinstance(val, bool):
+            self._analyze = val
+        else:
+            raise ValueError('Analyze attribute must be of type bool;'
+                ' got {} instead'.format(type(val)))
+
 def pileup_iterator(flname=None, flobj=None):
 
     if flobj:
@@ -250,8 +321,11 @@ def delete_action(read_calls, index, final, match):
     # function
     assert read_calls[index] == '-'
 
-    # Here we are safe because the logic will replace
-    # asterisks with gaps
+    # Add the number of deletions to the last sequence
+    # We will need it to know how much to expand the
+    # window by
+    final[-1] = (final[-1], int(match.group(1)))
+
     return match.end()
 
 def insert_action(read_calls, index, final, match):
@@ -267,14 +341,14 @@ def insert_action(read_calls, index, final, match):
 
 def _process_iter_re(read_calls, match_obj, index=0, final=None):
 
-    if not final:
+    if final is None:
         final = []
 
     upto = match_obj.start()
 
     while index < upto:
         final.append(read_calls[index])
-        i+=1
+        index += 1
 
     return index, final
 
@@ -300,7 +374,7 @@ def process_iter_re(read_calls, matcher=None, match_objs=None, action=None):
     if match_objs:
 
         for match in match_objs:
-            index, final = _process_iter_re(read_calls, match, index, final)
+            index, final = _process_iter_re(read_calls, match, index=index, final=final)
             index = action(read_calls, index, final, match)
 
         while index < len(read_calls):
@@ -311,7 +385,7 @@ def process_iter_re(read_calls, matcher=None, match_objs=None, action=None):
         
         for match in matcher.finditer(read_calls):
 
-            index, final = _process_iter_re(read_calls, match, index, final)
+            index, final = _process_iter_re(read_calls, match, index=index, final=final)
             index = action(read_calls, index, final, match)
 
         while index < len(read_calls):
@@ -341,20 +415,36 @@ def process_line(line):
         # is going to be the number of positions where there is an
         # insertion
 
+        # Haven't handled the case where there are insertions and deletions
+        assert bool(ins) ^ bool(dels)
+
         if ins:
             extracted = process_iter_re(read_calls, match_objs=ins, action=insert_action)
+            
+            extracted_with_ref_calls = map(
+                lambda x: _reference.sub(reference_call, x), extracted)
 
         else:
             extracted = process_iter_re(read_calls, match_objs=dels, action=delete_action)
+            extracted_with_ref_calls = []
+            for e in extracted:
+                if isinstance(e, tuple):
+                    extracted_with_ref_calls.append(
+                        (e[0].replace('.', reference_call).replace(',', reference_call), e[1])
+                    )
 
-        return True, ref, position, read_count, read_calls
+                else:
+                    extracted_with_ref_calls.append(
+                        (e.replace(',', reference_call).replace('.', reference_call), 0)
+                    )
+
+        return bool(dels), ref, position, read_count, extracted_with_ref_calls
 
     read_calls_list = []
 
     # Remove the dollar signs and other things
     # that don't tell us things we actually want to know
     read_calls = _remove.sub(r'', read_calls)
-    read_calls = _reference.sub(reference_call, read_calls).upper()
     
     i = 0
     for match in _start_read.finditer(read_calls):
@@ -384,34 +474,156 @@ def process_line(line):
 
     # Make sure this assertion passes, because otherwise
     # we did something wrong
-    assert len(read_calls_list) == read_count
+    #assert len(read_calls_list) == read_count
 
     read_calls = ''.join(read_calls_list)
+    read_calls = _asterisk.sub(r'-', read_calls)
 
-    if _substitutions.match(read_calls):
+    if _substitutions.search(read_calls) or '-' in read_calls:
         # Replace all of the calls that are forward or reverse
         # matches with the reference call
-
-        return False, ref, position, read_count, read_calls
-
+        read_calls = _reference.sub(reference_call, read_calls).upper()
+        return False, ref, position, read_count, list(read_calls)
 
     else:
         # If there is no other call than the reference
         # we can just return the call
         return False, ref, position, read_count, reference_call
 
+def detect_deletion_window(pile, ref, position, read_count, read_calls,
+    current_consensus):
+
+    max_jump = max(read_calls, key=lambda x: x[1])[1]
+
+    stack = []
+
+    if ref == 'stx2_e_1':
+        pause=1
+
+    # In the weird off chance that the deletion is
+    # at the end of the sequence but samtools  gives us a deletion
+    # larger than the remainder of the data stream
+    
+    try:
+        for _ in range(max_jump):
+            stack.append(next(pile))
+    except StopIteration:
+        max_jump = len(stack)
+
+    processed_stack = [process_line(line) for line in stack]
+    all_lines = [read_calls]
+    all_lines.extend(line[4] for line in processed_stack)
+    
+    # 
+    # all_lines represents a window: [
+    #   POS 108 -> [nuc, nuc, ... , nuc, nuc, nuc]
+    #   POS 109 -> [nuc, nuc, ... , nuc, nuc]
+    #   POS 110 -> [nuc, nuc, ... , nuc]
+    #   POS 111 -> [nuc, nuc, ... , nuc, nuc]
+    # ]
+    # 
+    # 
+    # The first list in all_lines is the read_calls this function was called with
+    # so the first position prior to the deletion window
+    # and the last list being the last position in the deletion window
+    # 
+
+    sub_seq = []
+
+    for window in izip_longest(*all_lines, fillvalue='-'):
+        if all(x=='-' for x in window[1:]):
+            sub_seq.append(tuple([window[0][0]] + list(window[1:])))
+
+        elif all(x!='-' for x in window[1:]):
+            sub_seq.append(tuple([window[0][0]] + list(window[1:])))
+
+    # We want to get the counts of the deletion window
+    # meaning how many reads support a certain substring
+    counts = counter(sub_seq)
+    to_remove = []
+    for seq, count in counts.iteritems():
+        if float(count) / len(sub_seq) < ConsensusPosition.ambiguity_thresh:
+            to_remove.append(seq)
+
+    for rm in to_remove:
+        del counts[rm]
+
+    # If we reduce the complexity down
+    # to just one substring, hooray!
+    if len(counts) == 1:
+        final_seqs = counts.keys()[0]
+        count = counts.values()[0]
+        current_consensus.add_nuc(ref, position, final_seqs[0], count)
+
+
+        for i, next_nuc in enumerate(final_seqs[1:]):
+            current_consensus.add_nuc(
+                ref,
+                processed_stack[i][2],
+                next_nuc, 
+                0 if next_nuc=='-' else count
+        )
+
+        return 0
+
+    else:
+
+        i = len(sub_seq)-1
+        while i >= 0:
+            if sub_seq[i] not in counts:
+                sub_seq.pop(i)
+            i-=1
+
+        final_seqs = map(list, zip(*sub_seq))
+        
+        first_cp = ConsensusPosition(
+            position,
+            final_seqs[0], 
+            sum(x!='-' for x in final_seqs[0])
+        )
+        
+        # We've already done the frequency analysis
+        # there's no longer a need to do it
+        first_cp.analyze = False
+
+        current_consensus.add_nuc(
+            ref,
+            first_cp.pos,
+            first_cp,
+            first_cp.count
+        )
+
+        for i, next_nuc in enumerate(final_seqs[1:]):
+
+            cp = ConsensusPosition(
+                processed_stack[i][2],
+                next_nuc,
+                sum(x!='-' for x in next_nuc)
+            )
+
+            cp.analyze = False
+
+            current_consensus.add_nuc(
+                processed_stack[i][1],
+                cp.pos,
+                cp,
+                cp.count
+            )
+
+        return 0
+
 def build_consensus(pileup_file):
 
     reference = None
     consensus = []
     current_consensus = ConsensusSequence()
-    
+    position_offset = 0
     pile = pileup_iterator(flname=pileup_file)
 
     while pile:
 
         next_line = next(pile)
-        indel, ref, position, read_count, read_calls = process_line(next_line)
+        dels, ref, position, read_count, read_calls = process_line(next_line)
 
         if position < current_consensus.stop:
             # We've started on the next reference
@@ -427,15 +639,20 @@ def build_consensus(pileup_file):
         reference = ref
 
         if not read_count:
-            current_consensus.add_nuc(reference, position, '-', read_count)
+            current_consensus.add_nuc(reference, position+position_offset, '-', read_count)
             continue
 
-        if indel:
-            # This is because of insertions
-            # or deletions
-            raise NotImplementedError('Indel analysis not yet implemented')
+        if dels:
+            position_offset += detect_deletion_window(
+                pile, 
+                ref, position, 
+                read_count, 
+                read_calls, 
+                current_consensus
+            )
+            continue
 
-        current_consensus.add_nuc(reference, position, read_calls, read_count)
+        current_consensus.add_nuc(reference, position+position_offset, read_calls, read_count)
 
 
 if __name__ == '__main__':

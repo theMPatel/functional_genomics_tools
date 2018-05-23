@@ -320,3 +320,15 @@ def parse_paired_files(readFiles):
         pairedFiles.append(flPair)
 
     return singleFiles, pairedFiles
+
+def counter(l):
+    c = {}
+
+    for i in l:
+
+        if i in c:
+            c[i] += 1
+        else:
+            c[i] = 1
+
+    return c
