@@ -332,3 +332,4 @@ def counter(l):
             c[i] = 1
 
     return c
+
