@@ -234,9 +234,9 @@ class ConsensusPosition(object):
 
         if len(to_keep) == 1:
             self.nuc = to_keep.pop()
-            self.ambiguous = False
+            self.ambiguous = not self._nuc == self._ref_call
             self.count = counts[self.nuc]
-            return False
+            
 
         elif self.ref_call in to_keep:
             self.nuc = self.ref_call
@@ -255,7 +255,7 @@ class ConsensusPosition(object):
                     # remove the count of nucleotides
                     self.count -= len(removed)
 
-            return True
+        return self.ambiguous
 
     @property
     def pos(self):
@@ -489,6 +489,7 @@ def process_line(line):
         else:
             extracted = process_iter_re(read_calls, match_objs=dels, action=delete_action)
             extracted_with_ref_calls = []
+            
             for e in extracted:
                 if isinstance(e, tuple):
                     extracted_with_ref_calls.append(
@@ -716,6 +717,7 @@ def build_consensus(pileup_file):
             yield reference, current_consensus
 
             current_consensus = ConsensusSequence()
+            position_offset = 0
 
         reference = ref
 
@@ -736,125 +738,10 @@ def build_consensus(pileup_file):
 
         current_consensus.add_nuc(reference, position+position_offset, read_calls, read_count, reference_call)
 
-# The width of the window
-_AMBIGUOUS_WIDTH = 100
-def get_window(ambig_indices):
-
-    if not len(ambig_indices):
-        return [[]]
-
-    # Make sure the indices are sorted
-    ambig_indices.sort()
-
-    windows = []
-    current_window = [ambig_indices[0]]
-
-    for i in range(1, len(ambig_indices)):
-        if ambig_indices[i] < _AMBIGUOUS_WIDTH + current_window[-1]:
-            current_window.append(ambig_indices[i])
-        else:
-            windows.append(current_window)
-            current_window = [ambig_indices[i]]
-
-    windows.append(current_window)
-
-    return windows
-
-def get_snps(windows, seq):
-
-    iter_window = []
-
-    for window in windows:
-        current = []
-        unique = set()
-
-        for i in window:
-            current.append(seq[i].nuc)
-
-        for snps in izip(*current):
-            unique.add(snps)
-
-        to_append = []
-        while unique:
-            n = unique.pop()
-            to_append.append(list(izip(n, window)))
-
-        iter_window.append(to_append)
-
-    return iter_window
-
-def clean_seq(l):
-    # Return the ungapped sequence
-    return ''.join(x for x in l if x!='-')
-
-def assemble_sequence(seq):
-    # This should always be the case
-    assert isinstance(seq, ConsensusSequence)
-
-    consensus = []
-    snp_windows = get_window(seq.ambiguous.keys())
-    iter_windows = get_snps(snp_windows, seq)
-
-    for pos in seq:
-
-        if pos.ambiguous:
-            consensus.append(None)
-
-        else:
-            consensus.append(pos.nuc)
-
-    for combo in product(*iter_windows):
-
-        for window in combo:
-
-            for nuc, pos in window:
-                consensus[pos] = nuc
-
-        yield clean_seq(consensus)
-
 def build_sequences(seqs):
 
-    built_seqs = set()
-    seqs_by_refs = {}
+    return [seq for seq in seqs if not seq.ambiguous]
 
-    for seq in seqs:
-        name = seq.ref.rsplit('_', 1)[0]
-        if name in seqs_by_refs:
-            seqs_by_refs[name].append(seq)
-        else:
-            seqs_by_refs[name] = [seq]
-
-    # Make sure that the seqs are sorted according to
-    # complexity
-    for v in seqs_by_refs.itervalues():
-        v.sort(key=lambda x: len(x.ambiguous), reverse=True)
-
-    while seqs_by_refs:
-        to_remove = []
-
-        for k, v in seqs_by_refs.iteritems():
-            # Pop from the back of the list to
-            # get the lowest complexity
-            i = 0
-            next_seq = v.pop()
-            assembled = assemble_sequence(next_seq)
-
-            for assembly in assembled:
-                if assembly not in built_seqs:
-                    built_seqs.add(assembly)
-                    i += 1
-
-            if not i:
-                to_remove.append(k)
-
-        for rm in to_remove:
-            del seqs_by_refs[rm]
-
-    return built_seqs
-
-def zip_seqs(seqs):
-    for combo in izip(*seqs):
-        pass
 if __name__ == '__main__':
 
     parsed_seqs = []
@@ -874,4 +761,5 @@ if __name__ == '__main__':
             parsed_seqs.append(seq)
 
     #built = build_sequences(parsed_seqs)
-    zip_seqs(parsed_seqs)
+    built = build_sequences(parsed_seqs)
+    print(len(built))
