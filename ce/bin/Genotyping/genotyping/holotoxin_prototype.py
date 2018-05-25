@@ -11,13 +11,21 @@
 import re
 import os
 import sys
+import importlib
 from copy import deepcopy
 from itertools import izip, izip_longest, product
 from collections import defaultdict, namedtuple
 
-# from tools.tools import (
-#   counter
-# )
+if __debug__:
+    tools_parent = os.path.realpath(os.path.abspath(__file__))
+
+    for _ in range(2):
+        tools_parent = os.path.dirname(tools_parent)
+
+    sys.path.append(tools_parent)
+
+    from tools.tools import counter, codon_translation
+
 
 _deletions = re.compile(r'-([0-9]+)([ACGTNacgtn]+)')
 _insertions = re.compile(r'\+([0-9]+)([ACGTNacgtn]+)')
@@ -26,18 +34,6 @@ _remove = re.compile(r'[$<>]')
 _start_read = re.compile(r'[\^]')
 _reference = re.compile(r'[.,]')
 _asterisk = re.compile(r'[\*]')
-
-def counter(l):
-    c = {}
-
-    for i in l:
-
-        if i in c:
-            c[i] += 1
-        else:
-            c[i] = 1
-
-    return c
 
 class ConsensusSequence(object):
 
@@ -49,13 +45,13 @@ class ConsensusSequence(object):
         self._ambiguous = {}
         self._ref = ''
 
-    def initialize(self, ref, start, stop, nuc, count):
+    def initialize(self, ref, start, stop, nuc, count, ref_call):
 
         self._start = start
         self._stop = stop
 
         if not isinstance(nuc, ConsensusPosition):
-            cp = ConsensusPosition(stop, nuc, count)
+            cp = ConsensusPosition(stop, nuc, count, ref_call)
 
         else:
             cp = nuc
@@ -67,15 +63,15 @@ class ConsensusSequence(object):
         self._count = count
         self._ref = ref
 
-    def add_nuc(self, ref, pos, nuc, count):
+    def add_nuc(self, ref, pos, nuc, count, ref_call):
 
         if self._start == -1:
-            return self.initialize(ref, pos, pos, nuc, count)
+            return self.initialize(ref, pos, pos, nuc, count, ref_call)
 
         assert self.ref == ref
 
         if not isinstance(nuc, ConsensusPosition):
-            cp = ConsensusPosition(pos, nuc, count)
+            cp = ConsensusPosition(pos, nuc, count, ref_call)
 
         else:
             cp = nuc
@@ -84,7 +80,7 @@ class ConsensusSequence(object):
             raise RuntimeError('Adding to consensus sequence needs to be contiguous')
 
         if cp.ambiguous:
-            self._ambiguous[pos] = cp
+            self._ambiguous[pos-1] = cp
 
         self._stop += 1
         self._seq.append(cp)
@@ -133,7 +129,13 @@ class ConsensusSequence(object):
         for k in rm:
             del self.ambiguous[k]
 
-    def get_fragment(self, start=self.start, stop=self.stop):
+    def get_fragment(self, start=None, stop=None):
+
+        if start is None:
+            start = self.start
+
+        if stop is None:
+            stop = self.stop
 
         for i in range(start-1, stop):
             if i+1 in self.ambiguous:
@@ -189,20 +191,22 @@ class ConsensusPosition(object):
 
     ambiguity_thresh = 1.0 / 3.0
 
-    def __init__(self, pos, nuc, count):
+    def __init__(self, pos, nuc, count, ref_call):
 
         self._pos = -1
         self._nuc = None
         self._count = -1
+        self._ref_call = ''
         self._ambiguous = False
         self._analyze = True
 
-        self.initialize(pos, nuc, count)
+        self.initialize(pos, nuc, count, ref_call)
 
-    def initialize(self, pos, nuc, count):
+    def initialize(self, pos, nuc, count, ref_call):
 
         self.pos = pos
         self.count = count
+        self.ref_call = ref_call
 
         if isinstance(nuc, list):
             self.ambiguous = True
@@ -234,6 +238,11 @@ class ConsensusPosition(object):
             self.count = counts[self.nuc]
             return False
 
+        elif self.ref_call in to_keep:
+            self.nuc = self.ref_call
+            self.ambiguous = False
+            self.count = counts[self.nuc]
+        
         else:
             i = 0
             while i < len(self.nuc):
@@ -321,6 +330,18 @@ class ConsensusPosition(object):
             raise ValueError('Analyze attribute must be of type bool;'
                 ' got {} instead'.format(type(val)))
 
+    @property
+    def ref_call(self):
+        return self._ref_call
+
+    @ref_call.setter
+    def ref_call(self, val):
+        if isinstance(val, basestring):
+            self._ref_call = val.upper()
+        else:
+            raise RuntimeError('Reference nucleotide must be string type'
+                ' got {} instead'.format(type(val)))
+    
 def pileup_iterator(flname=None, flobj=None):
 
     if flobj:
@@ -479,7 +500,7 @@ def process_line(line):
                         (e.replace(',', reference_call).replace('.', reference_call), 0)
                     )
 
-        return bool(dels), ref, position, read_count, extracted_with_ref_calls
+        return bool(dels), ref, position, read_count, extracted_with_ref_calls, reference_call
 
     read_calls_list = []
 
@@ -524,22 +545,19 @@ def process_line(line):
         # Replace all of the calls that are forward or reverse
         # matches with the reference call
         read_calls = _reference.sub(reference_call, read_calls).upper()
-        return False, ref, position, read_count, list(read_calls)
+        return False, ref, position, read_count, list(read_calls), reference_call
 
     else:
         # If there is no other call than the reference
         # we can just return the call
-        return False, ref, position, read_count, reference_call
+        return False, ref, position, read_count, reference_call, reference_call
 
 def detect_deletion_window(pile, ref, position, read_count, read_calls,
-    current_consensus):
+    current_consensus, ref_call,):
 
     max_jump = max(read_calls, key=lambda x: x[1])[1]
 
     stack = []
-
-    if ref == 'stx2_e_1':
-        pause=1
 
     # In the weird off chance that the deletion is
     # at the end of the sequence but samtools  gives us a deletion
@@ -615,7 +633,7 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
     if len(counts) == 1:
         final_seqs = counts.keys()[0]
         count = counts.values()[0]
-        current_consensus.add_nuc(ref, position, final_seqs[0], count)
+        current_consensus.add_nuc(ref, position, final_seqs[0], count, ref_call)
 
 
         for i, next_nuc in enumerate(final_seqs[1:]):
@@ -623,7 +641,8 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
                 ref,
                 processed_stack[i][2],
                 next_nuc,
-                0 if next_nuc=='-' else count
+                0 if next_nuc=='-' else count,
+                processed_stack[i][5]
         )
 
         return 0
@@ -641,18 +660,20 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
         first_cp = ConsensusPosition(
             position,
             final_seqs[0],
-            sum(x!='-' for x in final_seqs[0])
+            sum(x!='-' for x in final_seqs[0]),
+            processed_stack[i][5]
         )
 
         # We've already done the frequency analysis
         # there's no longer a need to do it
-        first_cp.analyze = False
+        #first_cp.analyze = False
 
         current_consensus.add_nuc(
             ref,
             first_cp.pos,
             first_cp,
-            first_cp.count
+            first_cp.count,
+            ref_call
         )
 
         for i, next_nuc in enumerate(final_seqs[1:]):
@@ -660,16 +681,18 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
             cp = ConsensusPosition(
                 processed_stack[i][2],
                 next_nuc,
-                sum(x!='-' for x in next_nuc)
+                sum(x!='-' for x in next_nuc),
+                processed_stack[i][5]
             )
 
-            cp.analyze = False
+            #cp.analyze = False
 
             current_consensus.add_nuc(
                 processed_stack[i][1],
                 cp.pos,
                 cp,
-                cp.count
+                cp.count,
+                processed_stack[i][5]
             )
 
         return 0
@@ -684,7 +707,7 @@ def build_consensus(pileup_file):
     while pile:
 
         next_line = next(pile)
-        dels, ref, position, read_count, read_calls = process_line(next_line)
+        dels, ref, position, read_count, read_calls, reference_call = process_line(next_line)
 
         if position < current_consensus.stop:
             # We've started on the next reference
@@ -697,7 +720,7 @@ def build_consensus(pileup_file):
         reference = ref
 
         if not read_count:
-            current_consensus.add_nuc(reference, position+position_offset, '-', read_count)
+            current_consensus.add_nuc(reference, position+position_offset, '-', read_count, reference_call)
             continue
 
         if dels:
@@ -706,50 +729,12 @@ def build_consensus(pileup_file):
                 ref, position,
                 read_count,
                 read_calls,
-                current_consensus
+                current_consensus,
+                reference_call
             )
             continue
 
-        current_consensus.add_nuc(reference, position+position_offset, read_calls, read_count)
-
-class Node(object):
-
-    def __init__(self):
-        self._value = None
-        self._children = {}
-        self._weight = 0
-
-    def add_child(self, seq=None, child=None):
-
-        if child is not None:
-            if isinstance(child, Node):
-                self._children[child.value] = child
-            else:
-                raise RuntimeError('Child object is of type: {}. Not Node!'.format(
-                    type(child)))
-
-        elif seq is not None:
-            child = Node()
-            node.value = seq
-
-        else:
-            raise RuntimeError('You need to provide a value before adding a child')
-
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, val):
-        if isinstance(val, basestring):
-            self._value = val
-        else:
-            raise RuntimeError('Value for node must be string.'
-                ' Got {} instead'.format(type(val)))
-
-    @property
-    def weight(self):
-        return self._weight
+        current_consensus.add_nuc(reference, position+position_offset, read_calls, read_count, reference_call)
 
 # The width of the window
 _AMBIGUOUS_WIDTH = 100
@@ -771,9 +756,9 @@ def get_window(ambig_indices):
             windows.append(current_window)
             current_window = [ambig_indices[i]]
 
-    window.append(current_window)
+    windows.append(current_window)
 
-    return window
+    return windows
 
 def get_snps(windows, seq):
 
@@ -794,7 +779,7 @@ def get_snps(windows, seq):
             n = unique.pop()
             to_append.append(list(izip(n, window)))
 
-        iter_windows.append(to_append)
+        iter_window.append(to_append)
 
     return iter_window
 
@@ -810,7 +795,7 @@ def assemble_sequence(seq):
     snp_windows = get_window(seq.ambiguous.keys())
     iter_windows = get_snps(snp_windows, seq)
 
-    for pos in consensus:
+    for pos in seq:
 
         if pos.ambiguous:
             consensus.append(None)
@@ -823,7 +808,7 @@ def assemble_sequence(seq):
         for window in combo:
 
             for nuc, pos in window:
-                consensus[pos-1] = nuc
+                consensus[pos] = nuc
 
         yield clean_seq(consensus)
 
@@ -833,7 +818,7 @@ def build_sequences(seqs):
     seqs_by_refs = {}
 
     for seq in seqs:
-        name = seq.ref.rsplit('_')[0]
+        name = seq.ref.rsplit('_', 1)[0]
         if name in seqs_by_refs:
             seqs_by_refs[name].append(seq)
         else:
@@ -867,6 +852,9 @@ def build_sequences(seqs):
 
     return built_seqs
 
+def zip_seqs(seqs):
+    for combo in izip(*seqs):
+        pass
 if __name__ == '__main__':
 
     parsed_seqs = []
@@ -885,4 +873,5 @@ if __name__ == '__main__':
             seq.flatten()
             parsed_seqs.append(seq)
 
-    built = build_sequences(parsed_seqs)
+    #built = build_sequences(parsed_seqs)
+    zip_seqs(parsed_seqs)
