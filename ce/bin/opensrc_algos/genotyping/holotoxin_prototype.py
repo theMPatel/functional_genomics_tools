@@ -16,16 +16,6 @@ from copy import deepcopy
 from itertools import izip, izip_longest, product
 from collections import defaultdict, namedtuple
 
-if __debug__:
-    tools_parent = os.path.realpath(os.path.abspath(__file__))
-
-    for _ in range(2):
-        tools_parent = os.path.dirname(tools_parent)
-
-    sys.path.append(tools_parent)
-
-    from tools.tools import counter, codon_translation
-
 
 _deletions = re.compile(r'-([0-9]+)([ACGTNacgtn]+)')
 _insertions = re.compile(r'\+([0-9]+)([ACGTNacgtn]+)')
@@ -129,6 +119,8 @@ class ConsensusSequence(object):
         for k in rm:
             del self.ambiguous[k]
 
+        self.count
+
     def get_fragment(self, start=None, stop=None):
 
         if start is None:
@@ -173,6 +165,12 @@ class ConsensusSequence(object):
     @property
     def count(self):
         return self._count
+
+    @count.setter
+    def count(self, val):
+        if not isinstance(val, (int, float)):
+            raise RuntimeError("Count must be int or float! Got"
+                " {} instead".format(val))
 
     @property
     def coverage(self):
@@ -739,7 +737,6 @@ def build_consensus(pileup_file):
         current_consensus.add_nuc(reference, position+position_offset, read_calls, read_count, reference_call)
 
 def build_sequences(seqs):
-
     return [seq for seq in seqs if not seq.ambiguous]
 
 if __name__ == '__main__':

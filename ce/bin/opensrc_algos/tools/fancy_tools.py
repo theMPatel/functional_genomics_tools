@@ -91,9 +91,6 @@ def edit_distance(c, n, matrix=False):
 
     if not n_l:
         return c_l
-        
-    if c_l < n_l:
-        return edit_distance(n, c)
 
     m = [[0]*(n_l+1) for _ in range(c_l+1)]
 
@@ -124,64 +121,80 @@ def edit_distance(c, n, matrix=False):
     else:
         return m[c_l][n_l]
 
-def build_consensus(c, n):
-    # Get the edit distance_matrix 
-    if not c:
-        return n
-
-    if not n:
-        return c
-
-    m = edit_distance(c, n, matrix=True)
+def get_alignment(seq1, seq2):
+    if not seq1 or not seq2:
+        return
     
-    # Here we will rebuild the sequence
-    i = len(m)
-    j = len(m[0])
+    m = edit_distance(seq1, seq2, matrix=True)
 
-    final = []
+    i = len(m) - 1
+    j = len(m[0]) - 1
+
+    seq1_aln = []
+    seq2_aln = []
+
     while i >= 1 and j >= 1:
 
         v = m[i][j]
 
-        up_left = m[i-1][j-1]
-        left = m[i-1][j]
-        up = m[i][j-1]
+        up_left = m[i - 1][j - 1]
+        left = m[i][j - 1]
+        up = m[i - 1][j]
 
         if all(up_left == x for x in [left, up]):
-            i-=1
-            j-=1
-            final.append(n[j])
-        
+            i -= 1
+            j -= 1
+            seq1_aln.append(seq1[i])
+            seq2_aln.append(seq2[j])
         else:
             m_val = min([up_left, left, up])
 
             if up_left == m_val:
-
                 i -= 1
                 j -= 1
-
-                if c[i] == n[j]:
-                    final.append(n[j])
-                else:
-                    final.append('N')
+                seq1_aln.append(seq1[i])
+                seq2_aln.append(seq2[j])
 
             elif left == m_val:
-
-                i-=1
-                final.append('N')
-
-            else:
                 j -= 1
-                final.append('N')
+                seq2_aln.append(seq2[j])
+                seq1_aln.append('-')
+            else:
+                i -= 1
+                seq1_aln.append(seq1[i])
+                seq2_aln.append('-')
 
     while i >= 1:
-        final.append('N')
-        i-=1
+        i -= 1
+        seq1_aln.append(seq1[i])
+        seq2_aln.append('-')
 
     while j >= 1:
-        final.append('N')
-        j-=1
+        j -= 1
+        seq1_aln.append('-')
+        seq2_aln.append(seq2[j])
 
-    final.reverse()
+    return list(reversed(seq1_aln)), list(reversed(seq2_aln)), m[-1][-1]
 
-    return final
+def pretty_aln(a, b, wrap=70):
+    pipe_str = []
+    for x, y in zip(a,b):
+        
+        if x==y:
+            pipe_str.append('|')
+        else:
+            pipe_str.append(' ')
+    
+    x = [a[i:i+wrap] for i in range(0, len(a), wrap)]
+    p = [pipe_str[i:i+wrap] for i in range(0, len(pipe_str), wrap)]
+    y = [b[i:i+wrap] for i in range(0, len(b), wrap)]
+    
+    final = []
+    
+    for combo in zip(x, p, y):
+        
+        new_c = list(map(''.join, combo))
+        new_c = '\n'.join(new_c)
+        final.append(new_c)
+    
+    return '\n\n'.join(final)

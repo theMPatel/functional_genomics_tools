@@ -10,6 +10,7 @@
 
 import os
 import json
+from collections import namedtuple
 
 from tools.environment import (
     log_algo_version,
@@ -25,207 +26,149 @@ from tools.tools import (
 )
 
 from tools.dbinfo import (
-    DbInfo,
-    LocusInfo,
-    notes_parser
+    DbInfo
 )
 
-from .rb_detection import Main2 as ReadFindPresenceAbsence
-from collections import namedtuple
+from .rb_detection import (
+    build_consensus
+)
 
-def ValidateInput(settings):
-    pass
+from tools.bowtie import (
+    bowtie_index,
+    paired_bowtie2,
+    sam_view,
+    bam_sort,
+    pile_up_sam
+)
 
-SeqInfo = namedtuple('SeqInfo', ['locus', 'allele', 'accession', 'sequence', 'other'])
-StxSeqInfo = namedtuple('StxSeqInfo', SeqInfo._fields + ('stx', 'variant'))
+STXTarget = namedtuple('STXTarget', [
+    'locus'
+    'allele',
+    'accession',
+    'sequence'
+])
 
-def ParserForSeq(header, seq, separator=':'):
-    parts = header.split('|')[0].split(separator)
-    while len(parts) < 2:
-        parts.append('')
+def sequence_parser(header, sequence, sep='_'):
+    info = header.split(sep)
 
-    stx = parts[0][:4]
-    variant = parts[0][-1]
-    return StxSeqInfo(parts[0], '', parts[1], seq, '{}:{}'.format(stx, variant), stx, variant)
+    while len(info) < 4:
+        info.append('')
 
-class StxDbInfo(object):
-    def __init__(self, folder=None, seqParser=ParserForSeq, notesParser=notes_parser, acceptFunc=None):
-        self._references = {}
-        self._notes = {}
-        self._sequences = {}
-
-        if folder is not None:
-            self.Load(folder, seqParser, notesParser
-                      , acceptFunc)
-
-    def Load(self, folder, seqParser, notesParser, acceptFunc):
-
-        def MyAcceptFunc(seqInfo):
-            return True
-
-        flName = os.path.join(folder, "stx1-all.fasta")
-        self.LoadFile(flName, seqParser, notesParser, MyAcceptFunc)
-        flName = os.path.join(folder, "stx2-no-f-all.fasta")
-        self.LoadFile(flName, seqParser, notesParser, MyAcceptFunc)
-        flName = os.path.join(folder, "stx2-f-all.fasta")
-        self.LoadFile(flName, seqParser, notesParser, MyAcceptFunc)
-
-        seqs = parse_fasta(os.path.join(folder, 'stx_consensus.fasta'))
-        self._references = {
-            k: SeqInfo(k, '', '', v, '') for k, v in seqs.iteritems()
-        }
-
-    def LoadFile(self, flName, seqParser, notesParser, acceptFunc):
-        seqs = parse_fasta(flName)
-        for header, seq in seqs.iteritems():
-            info = seqParser(header, seq)
-            if acceptFunc and not acceptFunc(info):
-                continue
-
-            alleleId = '{}_{}'.format(info.locus, info.allele) if info.allele else info.locus
-            idx = 2
-            while alleleId in self._sequences:
-                alleleId = '{}_{}-{}'.format(info.locus, info.allele, idx)
-                idx += 1
-            if alleleId not in self._sequences:
-                self._sequences[alleleId] = info
-
-    def GetRefSeqId(self, seqId):
-        if 'stx2' in seqId:
-            if 'f' not in seqId:
-                return 'consensus-stx2-no-f'
-            else:
-                return 'consensus-stx2-f'
-        else:
-            return 'consensus-stx1'
-
-    def GetSeq(self, seqId):
-        return self._sequences[seqId].sequence.replace('-', '')
-
-    def GetAlignedSeq(self, seqId):
-        return self._sequences[seqId].sequence
-
-    def GetAlignedRefSeq(self, seqId):
-        return self._sequences[seqId].sequence
-
-    def GetRefSeq(self, seqId):
-        return self._sequences[seqId].sequence
-
-    def Allele(self, seqId):
-        return self._sequences[seqId]
-
-    def Locus(self, locus):
-        return self._notes.get(locus, None)
-
-    def ExportToFasta(self, flName):
-        valid_dir(os.path.split(flName)[0])
-        with open(flName, 'w') as oFile:
-            for seqId, seqInfo in self._sequences.iteritems():
-                oFile.write('>{}|{}\n{}\n'.format(seqId, len(seqInfo.sequence), seqInfo.sequence))
-
-    def ExportRefsToFasta(self, flName):
-        valid_dir(os.path.split(flName)[0])
-        with open(flName, 'w') as oFile:
-            for seqId, seqInfo in self._sequences.iteritems():
-                oFile.write('>{}\n{}\n'.format(seqId, seqInfo.sequence))
-
-    @property
-    def RefSequences(self):
-        return self._references
-
-    @property
-    def Sequences(self):
-        return self._sequences
-
-    def ExportRefsToFasta(self, flName):
-        valid_dir(os.path.split(flName)[0])
-        with open(flName, 'w') as oFile:
-            for seqId, seqInfo in self._references.iteritems():
-                oFile.write('>{}\n{}\n'.format(seqId, seqInfo.sequence))
-
-def main(settings, env):
-    # write basic logging info
-
-    log_message('Starting running reads based stx subtyping algorithm', 1)
-
-    log_algo_version(
-        algo_version=None,
-        settings=settings,
-        env=env
+    return STXTarget(
+        locus=info[0]+info[1],
+        allele=info[2],
+        accession=info[3],
+        sequence=sequence
     )
 
-    # perform input data validation
-    ValidateInput(settings)
+def prepare_pileup(settings, env, dbinfo):
 
-    # load database info
+    log_message('Dumping reference sequences...', 3)
+
+    out_file = os.path.join(env.localdir, 'bowtie', 'stxrefs.fasta')
+    
+    dbinfo.export_sequences(out_file)
+
+    log_message('Success!', 4)
+
+    log_message('Indexing reference files...', 3)
+
+    index_file = bowtie_index(out_file, env)
+
+    log_message('Success!', 4)
+
+    log_message('Mapping reads against references...', 3)
+
+    sam_file = paired_bowtie2(settings.query_reads, env, index_path=index_file)
+
+    log_message('Success!', 4)
+
+    log_message('Sorting sam file and creating pileup...', 3)
+
+    bam_path = sam_view(sam_file, env)
+
+    bam_sorted = bam_sort(bam_path, env)
+
+    pileup_path = pile_up_sam(bam_sorted, out_file, env)
+
+    log_message('Success!', 4)
+
+    return pile_up_path
+
+def main(settings, env):
+    
+    log_message('Beginning reads based STX detection algorithm', 1)
+
+    # Write the version number of the database and algorithm
+    version_path = settings['version']
+
+    # Set the initial version information
+    log_algo_version(
+        algo_version = None,
+        settings = settings,
+        env = env
+    )
+
+    # Check just to make sure we have reads
+
+    if not len(settings.query_reads) != 2:
+        raise RuntimeError('No read files provided or improperly paired reads')
+
+    # Get the database path
     database_path = env.get_sharedpath(settings.database)
 
     log_message('Database path found at: {}'.format(
-        database_path), 2
-    )
+        database_path), 1)
 
-    dbInfo = StxDbInfo(database_path, ParserForSeq)
+    log_message('Loading stx gene sequences and associated'
+        ' information', 2)
 
-    # Just in case that the reads do not get pushed from the client
-    results = {}
+    sequence_database = DbInfo(
+        database_path, seq_parser = sequence_parser)
 
-    # run the finder
-    log_message("Determining fixed-position base calls...")
-    if 'query_reads' in settings and settings.query_reads:
+    log_message('Succesfully loaded sequences and metadata', 3)
+    log_message('Indexing references and executing mapping'2)
 
-        mappingSettings = {
-            'Bowtie2': {
-                '--reorder': None,  # to avoid bowtie2 from crashing when wrongly doing multithreaded output
-                '--local': None,  # perform local mapping
-                '--sensitive-local': None,  # default setting: sensitive
-                # '--rdg': '3,1', #make it gappy-er
-                # '--score-min': 'L,90,0', #adjust the minimum scoring function to f(readlen) = A + B*readlen
-                '--no-unal': None,  # avoid writing unaligned reads in the sam file
-                '--all': None,  # report all alignments
-            },
-            'BAMCoveragePrinter': {
-                'output_raw_coverages': None,
-                'count_multiple_alignments': None,
-            },
-            # 'samtools' : {}
-            'LoadCoverage': True,
-        }
+    pileup_path = prepare_pileup(settings, env, dbinfo)
 
-        results = ReadFindPresenceAbsence(
-            dbInfo,
-            settings.query_reads,
-            settings.reads.percent_identity,
-            settings.reads.min_coverage,
-            settings.reads.min_relative_coverage,
-            mappingSettings,
-            env.threads,
-            env
-        )
+    log_message('Searching alignments for stx subtypes', 2)
 
+    found_sequences = build_consensus(pileup_path, settings.min_ambiguity)
+    results = [f for f in found_sequences if not f.complexity]
 
-    fixed_results = {
+    results_out = sequence_database.results_parser(found_sequences, f=results_parser)
+
+    log_message('Found {} unique subtypes!'.format(sum(results_out['results'].values()), 3))
+    log_message('Outputting results..', 2)
+
+    write_results(ecoli.stxfinder_genotypes.json, json.dumps(results_out))
+
+    log_message('Successfully ran STX detection algorithm!', 1)
+
+def results_parser(dbinfo, results):
+
+    results_out = {
         'results': {},
-        'extra' : []
+        'extra': []
     }
 
-    found_genotypes = set(g['seqInfo'][0] for g in results)
-    all_genotypes = {g: False for g in dbInfo.Sequences.keys()}
+    for info in dbinfo.sequences.itervalues():
+        gene_name = info.locus
+        results_out['results'][gene_name] = False
 
-    for g in found_genotypes:
-        all_genotypes[g] = True
+    for seq in results:
+        reference_info = dbinfo.sequences.get(seq.ref.split('|')[0], None)
 
-    fixed_results['results'] = all_genotypes
-    fixed_results['extra'] = results
+        if reference_info is None:
+            raise RuntimeError('Missing reference')
 
-    write_results('ecoli.stxfinder_genotypes.json', json.dumps(fixed_results))
+        results_out['results'][gene_name] = True
 
-    # # parse position information into stx types
-    # log_message("Performing stx calling on fixed-position base calls...")
-    # stxTypeResults = {}
-    # if 'stx-aligned_1' in results:
-    #     stxTypeResults = {
-    #         tpe: sum(any(c in results['stx-aligned_1'][p] for c in call[p]) for p in call)
-    #         for tpe, call in dbInfo.Calls.iteritems()
-    #     }
+        extra.append([
+            'locus': gene_name,
+            'allele': allele,
+            'accession': reference_info.accession,
+            'sequence': ''.join(seq.get_fragment())
+        ])
 
-    # write_results('StxTypeFinder_stxtypes.json', json.dumps(stxTypeResults))
+    return results_out
