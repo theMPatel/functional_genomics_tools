@@ -131,13 +131,10 @@ class ConsensusSequence(object):
             stop = self.stop
 
         for i in range(start-1, stop):
-            if i+1 in self.ambiguous:
-                raise StopIteration
+            if self.seq[i].ambiguous:
+                yield 'N'
 
-            if self.seq[i].nuc == '-':
-                continue
-            else:
-                yield self.seq[i]
+            yield self.seq[i].nuc
 
     @property
     def complexity(self):
@@ -400,6 +397,23 @@ def insert_action(read_calls, index, final, match):
 
     return match.end()
 
+def indel_action(read_calls, index, final, match):
+
+    if read_calls[index] == '+':
+        final[-1] += match.group(2).upper()
+
+    # Add the number of deletions to the last sequence
+    # We will need it to know how much to expand the
+    # window by
+    elif read_calls[index] == '-':
+        final[-1] = (final[-1], int(match.group(1)))
+
+    else:
+        raise RuntimeError('Error proccessing indel'
+            ' in line:\n\t {}'.format(read_calls))
+
+    return match.end()
+
 def _process_iter_re(read_calls, match_obj, index=0, final=None):
 
     if final is None:
@@ -455,6 +469,12 @@ def process_iter_re(read_calls, matcher=None, match_objs=None, action=None):
 
     return final
 
+def sub_reference(string, reference_call):
+    return string.replace('.', reference_call).replace(',', reference_call)
+
+def sub_asterisk(string):
+    return string.replace('*', '-')
+
 def process_line(line):
 
     # All the information associated to a line
@@ -476,29 +496,22 @@ def process_line(line):
         # is going to be the number of positions where there is an
         # insertion
 
-        # Haven't handled the case where there are insertions and deletions
-        assert bool(ins) ^ bool(dels)
+        indels = list(ins)
+        indels.extend(dels)
+        indels.sort(key=lambda x: x.start())
+        extracted = process_iter_re(read_calls, match_objs=indels, action=indel_action)
+        extracted_with_ref_calls = []
 
-        if ins:
-            extracted = process_iter_re(read_calls, match_objs=ins, action=insert_action)
+        for e in extracted:
+            if isinstance(e, tuple):
+                extracted_with_ref_calls.append(
+                    (e[0].replace('.', reference_call).replace(',', reference_call), e[1])
+                )
 
-            extracted_with_ref_calls = map(
-                lambda x: _reference.sub(reference_call, x), extracted)
-
-        else:
-            extracted = process_iter_re(read_calls, match_objs=dels, action=delete_action)
-            extracted_with_ref_calls = []
-            
-            for e in extracted:
-                if isinstance(e, tuple):
-                    extracted_with_ref_calls.append(
-                        (e[0].replace('.', reference_call).replace(',', reference_call), e[1])
-                    )
-
-                else:
-                    extracted_with_ref_calls.append(
-                        (e.replace(',', reference_call).replace('.', reference_call), 0)
-                    )
+            else:
+                extracted_with_ref_calls.append(
+                    (e.replace(',', reference_call).replace('.', reference_call), 0)
+                )
 
         return bool(dels), ref, position, read_count, extracted_with_ref_calls, reference_call
 
@@ -507,53 +520,48 @@ def process_line(line):
     # Remove the dollar signs and other things
     # that don't tell us things we actually want to know
     read_calls = _remove.sub(r'', read_calls)
+    read_calls_list = process_iter_re(read_calls, matcher=_start_read, action=base_action)
 
-    i = 0
-    for match in _start_read.finditer(read_calls):
+    # Replace all the dots and commas with the reference call
+    for i in range(len(read_calls_list)):
+        read_calls_list[i] = sub_reference(read_calls_list[i], reference_call)
+        read_calls_list[i] = sub_asterisk(read_calls_list[i])
 
-        if not match:
-            continue
-
-        group = match.group()
-
-        if not group:
-            continue
-
-        if isinstance(group, tuple):
-            raise RuntimeError("We were only matching one character!")
-
-        upto = match.start()
-
-        while i < upto:
-            read_calls_list.append(read_calls[i])
-            i+=1
-
-        i += 2
-
-    while i < len(read_calls):
-        read_calls_list.append(read_calls[i])
-        i += 1
-
-    # Make sure this assertion passes, because otherwise
-    # we did something wrong
-    #assert len(read_calls_list) == read_count
-
-    read_calls = ''.join(read_calls_list)
-    read_calls = _asterisk.sub(r'-', read_calls)
-
-    if _substitutions.search(read_calls) or '-' in read_calls:
-        # Replace all of the calls that are forward or reverse
-        # matches with the reference call
-        read_calls = _reference.sub(reference_call, read_calls).upper()
-        return False, ref, position, read_count, list(read_calls), reference_call
-
-    else:
-        # If there is no other call than the reference
-        # we can just return the call
+    if all(nuc==reference_call for nuc in read_calls_list):
         return False, ref, position, read_count, reference_call, reference_call
 
+    else:
+        return False, ref, position, read_count, read_calls_list, reference_call
+
+    # if _substitutions.search(read_calls) or '-' in read_calls:
+    #     # Replace all of the calls that are forward or reverse
+    #     # matches with the reference call
+    #     read_calls = _reference.sub(reference_call, read_calls).upper()
+    #     return False, ref, position, read_count, list(read_calls), reference_call
+
+    # else:
+    #     # If there is no other call than the reference
+    #     # we can just return the call
+    #     return False, ref, position, read_count, reference_call, reference_call
+
+def extend_detection_window(pile, processed_stack):
+
+    for i, line in enumerate(processed_stack):
+        if line[0]:
+
+            max_jump = float('-inf')
+
+            for deletion in line:
+                if isinstance(deletion, tuple):
+                    max_jump = max(max_jump, deletion[1])
+
+            if len(processed_stack) - i - 1 < max_jump:
+
+                for _ in range(len(processed_stack)-i-1):
+                    processed_stack.append(process_line(next(pile)))
+
 def detect_deletion_window(pile, ref, position, read_count, read_calls,
-    current_consensus, ref_call,):
+    current_consensus, ref_call):
 
     max_jump = max(read_calls, key=lambda x: x[1])[1]
 
@@ -570,8 +578,22 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
         max_jump = len(stack)
 
     processed_stack = [process_line(line) for line in stack]
+
+    # Check to see if we have any extra deletions in the the window we just pulled
+    extend_detection_window(pile, processed_stack)
+
     all_lines = [read_calls]
     all_lines.extend(line[4] for line in processed_stack)
+
+    all_lines_fixed = []
+
+    for l in all_lines:
+        all_lines_fixed.append(list())
+        for n in l:
+            if isinstance(n, tuple):
+                all_lines_fixed[-1].append(n[0])
+            else:
+                all_lines_fixed[-1].append(n)
 
     #
     # all_lines represents a window: [
@@ -589,7 +611,7 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
 
     sub_seq = []
 
-    for window in izip_longest(*all_lines, fillvalue='-'):
+    for window in izip_longest(*all_lines_fixed, fillvalue='-'):
         # If bowtie says that this is a deletion window
         # Then it better be consistent
         # Namely, this happens:
@@ -612,10 +634,10 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
         # and yet all reads afterwards are deleted
 
         if all(x=='-' for x in window[1:]):
-            sub_seq.append(tuple([window[0][0]] + list(window[1:])))
+            sub_seq.append(tuple(window))
 
         elif all(x!='-' for x in window[1:]):
-            sub_seq.append(tuple([window[0][0]] + list(window[1:])))
+            sub_seq.append(tuple(window))
 
     # We want to get the counts of the deletion window
     # meaning how many reads support a certain substring
@@ -634,7 +656,6 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
         final_seqs = counts.keys()[0]
         count = counts.values()[0]
         current_consensus.add_nuc(ref, position, final_seqs[0], count, ref_call)
-
 
         for i, next_nuc in enumerate(final_seqs[1:]):
             current_consensus.add_nuc(
@@ -661,12 +682,8 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
             position,
             final_seqs[0],
             sum(x!='-' for x in final_seqs[0]),
-            processed_stack[i][5]
+            ref_call
         )
-
-        # We've already done the frequency analysis
-        # there's no longer a need to do it
-        #first_cp.analyze = False
 
         current_consensus.add_nuc(
             ref,
@@ -684,8 +701,6 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
                 sum(x!='-' for x in next_nuc),
                 processed_stack[i][5]
             )
-
-            #cp.analyze = False
 
             current_consensus.add_nuc(
                 processed_stack[i][1],
@@ -737,3 +752,19 @@ def build_consensus(pileup_file, ambiguity_threshold):
             continue
 
         current_consensus.add_nuc(reference, position+position_offset, read_calls, read_count, reference_call)
+
+def build_sequences(pileup_file, ambiguity_threshold, min_coverage):
+
+    final_sequences = []
+
+    for reference, c_sequence in build_consensus(pileup_file,
+        ambiguity_threshold):
+
+        if c_sequence.coverage < min_coverage:
+            continue
+
+        c_sequence.flatten()
+        final_sequences.append(c_sequence)
+
+    return [f for f in final_sequences if not f.complexity]
+

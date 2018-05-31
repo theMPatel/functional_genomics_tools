@@ -103,7 +103,7 @@ def setup_genotyper(genotyper, module_name, organism_config, env, data):
     genotyper_settings.query = data.get('query', None)
 
     # Add the reads to the query genotyper
-    genotyper_settings.query_reads = data.get('query_reads', None)
+    genotyper_settings.query_reads = data.get('query_reads', [])
 
     # Add the cached_query to the settings
     genotyper_settings.cached_query = data.get('cached_query', None)
@@ -169,6 +169,25 @@ def main(args, remaining, env, module_settings):
     else:
 
         query_filename = specific_args.query
+
+    log_message('Checking read files...')
+    unpacked_reads = []
+    for read in specific_args.query_reads:
+        if read.endswith('.gz'):
+
+            log_message('Unzipping {}'.format(read), 1)
+            try:
+
+                new_file_name = os.path.basename(read).replace('.gz', '')
+                new_file = os.path.join(env.localdir, new_file_name)
+                unzip_file(read, new_file)
+            except:
+                log_error('Could not unzip read file: {}'.format(read))
+
+            else:
+                unpacked_reads.append(new_file)
+
+    specific_args.query_reads = unpacked_reads
 
     # Load the query file into memory for future analysis
     log_message('Loading query into memory....', 1)

@@ -24,9 +24,7 @@ from tools.environment import (
 flnames = {
 
     'stxfinder' : 'ecoli.stxfinder_genotypes.json',
-    'virulence' : 'virulence.json',
     'insilicopcr' : 'insilicopcr.json',
-    'pathotyper' : 'ecoli.pathotype_genotypes.json'
 }
 
 stx_matcher = re.compile(r'^stx(?P<xtype>\d)(?:[AB])?(?P<subtype>[a-f])?$')

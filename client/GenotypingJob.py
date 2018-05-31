@@ -32,11 +32,16 @@ Dlg = bns.Windows.XmlDlgBuilder
 MessageBox = bns.Util.Program.MessageBox
 ConfirmBox = bns.Util.Program.ConfirmBox
 
+_SALMONELLA = 'Salmonella'
+_ESCHERICHIA = 'Escherichia'
+_LISTERIA = 'Listeria'
+_CAMPY = 'Campylobacter'
+
 organism_abbreviations = {
-    'EC': 'Escherichia',
-    'SALM': 'Salmonella',
-    'LMO' : 'Listeria',
-    'CAMPY' : 'Campylobacter'
+    'EC': _ESCHERICHIA,
+    'SALM': _SALMONELLA,
+    'LMO' : _LISTERIA,
+    'CAMPY' : _CAMPY
 }
 
 default_settings = {
@@ -48,7 +53,7 @@ default_settings = {
     # the types are used explicitly to build specific inputs
     # for the UX
     # 
-    'Escherichia' : {
+    _ESCHERICHIA : {
         "plasmids": {
             "percent_identity": 90.0,
             "min_relative_coverage": 90.0,
@@ -88,7 +93,7 @@ default_settings = {
         # Just use the default settings for now
         "ecoli.stx" :{}
     },
-    'Salmonella': {
+    _SALMONELLA: {
         "plasmids": {
             "percent_identity": 90.0,
             "min_relative_coverage": 90.0,
@@ -113,7 +118,7 @@ default_settings = {
             "max_length_deviation": 10.0
         }
     },
-    'Campylobacter' : {
+    _CAMPY : {
         "plasmids": {
             "percent_identity": 90.0,
             "min_relative_coverage": 90.0,
@@ -127,7 +132,7 @@ default_settings = {
             "search_fragments": True
         }
     },
-    'Listeria' : {
+    _LISTERIA : {
         "plasmids": {
             "percent_identity": 90.0,
             "min_relative_coverage": 90.0,
@@ -175,80 +180,122 @@ genotyper_names = {
     'ecoli.stx' : 'Stx subtyper' 
 }
 
+# EXPER TYPES
+_RESISTANCE_EXPR = 'resistance'
+_ANTIBIOTIC_EXPR = 'antibio'
+_PLASMIDS_EXPR = 'plasmids'
+_VIRULENCE_EXPR = 'virulence'
+_STX_EXPR = 'stx'
+
+# RESULTS FILES -> EXPER
+_BLAST_RESISTANCE_EXPR = 'resistance.json'
+_BLAST_MUTATION_EXPR = 'resistance.point.json'
+_BLAST_ANTIBIOTIC_EXPR = 'resistance.antibios.json'
+
+_BLAST_PLASMIDS_EXPR = 'plasmids.json'
+_BLAST_VIRULENCE_EXPR = 'virulence.json'
+_BLAST_INSILICOPCR_EXPR = 'insilicopcr.json'
+
+_BLAST_ECOLI_PATHOTYPE_EXPR = 'ecoli.pathotype_genotypes.json'
+_READS_ECOLI_STX_EXPR = 'ecoli.stxfinder_genotypes.json'
+_CONDENSED_ECOLI_STX_EXPR = 'stx_condenser_expr.json'
+
+# FLD NAMES
+_SALM_SEROTYPE_FLDNAME = 'Serotype_wgs'
+_SALM_ANTIGENIC_FORM_FLDNAME = 'AntigenForm_wgs'
+_ECOLI_SEROTYPE_FLDNAME = 'Serotype_wgs'
+_ECOLI_TOXIN_FLDNAME = 'Toxin_wgs'
+_ECOLI_PATHOTYPE_FLDNAME = 'Pathotype'
+
+# RESULTS FILES -> FIELDS
+_CONDENSED_ECOLI_STX_FLD = 'stx_condenser_flds.json'
+_READS_SALM_SEROTYPE_FLD = 'salmonella.serotype.json'
+_BLAST_ECOLI_PATHOTYPE_FLD = 'ecoli.pathotype_pathotypes.json'
+_BLAST_ECOLI_SEROTYPE_FLD = 'ecoli.serotype.json'
+
 results_to_chars = {
-    'Salmonella': {
-              
-        'resistance': [
-                'resistance.json',
-                'resistance.point.json'
-                ],
-        
-        'antibio' : ['resistance.antibios.json'],
-
-        'plasmids': ['plasmids.json']
-        
-        },
-
-    'Escherichia': {
-        
-        'virulence': [
-                'virulence.json',
-                'ecoli.pathotype_genotypes.json',
-                'ecoli.stxfinder_genotypes.json',
-                'insilicopcr.json'
-                ],
-        
-        'resistance': [
-            'resistance.json',
-            'resistance.point.json'
+    _SALMONELLA: {
+        _RESISTANCE_EXPR: [
+            _BLAST_RESISTANCE_EXPR,
+            _BLAST_MUTATION_EXPR
         ],
-        'antibio' : ['resistance.antibios.json'],
-        'plasmids': ['plasmids.json'],
-        'stx' : ['stx_condenser_expr.json']
+        _ANTIBIOTIC_EXPR: [
+            _BLAST_ANTIBIOTIC_EXPR
+        ],
+        _PLASMIDS_EXPR: [
+            _BLAST_PLASMIDS_EXPR
+        ]
     },
-
-    'Campylobacter': {
-              
-        'resistance': [
-                'resistance.json',
-                'resistance.point.json'
-                ],
-
-        'antibio' : ['resistance.antibios.json'],
-        
-        'plasmids': ['plasmids.json']
-        
-        },
-    
-    'Listeria': {
-              
-        'resistance': [
-                'resistance.json',
-                'resistance.point.json'
-                ],
-
-        'antibio' : ['resistance.antibios.json'],
-
-        'plasmids': ['plasmids.json']
-        
-        },
+    _ESCHERICHIA: {
+        _VIRULENCE_EXPR: [
+            _BLAST_VIRULENCE_EXPR,
+            _BLAST_ECOLI_PATHOTYPE_EXPR,
+            _READS_ECOLI_STX_EXPR,
+            _BLAST_INSILICOPCR_EXPR
+        ],
+        _RESISTANCE_EXPR: [
+            _BLAST_RESISTANCE_EXPR,
+            _BLAST_MUTATION_EXPR
+        ],
+        _ANTIBIOTIC_EXPR: [
+            _BLAST_ANTIBIOTIC_EXPR
+        ],
+        _PLASMIDS_EXPR: [
+            _BLAST_PLASMIDS_EXPR
+        ],
+        _STX_EXPR: [
+            _CONDENSED_ECOLI_STX_EXPR
+        ]
+    },
+    _CAMPY: {
+        _RESISTANCE_EXPR: [
+            _BLAST_RESISTANCE_EXPR,
+            _BLAST_MUTATION_EXPR
+        ],
+        _ANTIBIOTIC_EXPR: [
+            _BLAST_ANTIBIOTIC_EXPR
+        ],
+        _PLASMIDS_EXPR: [
+            _BLAST_PLASMIDS_EXPR
+        ]
+    },
+    _LISTERIA: {
+        _RESISTANCE_EXPR: [
+            _BLAST_RESISTANCE_EXPR,
+            _BLAST_MUTATION_EXPR
+        ],
+        _ANTIBIOTIC_EXPR: [
+            _BLAST_ANTIBIOTIC_EXPR
+        ],
+        _PLASMIDS_EXPR: [
+            _BLAST_PLASMIDS_EXPR
+        ]
+    }
 }
 
 results_to_fields = {
     
-    'Salmonella' : {
-        'Serotype' : 'salmonella.serotype.json',
-        'AntigenForm' : 'salmonella.serotype.json'
+    _SALMONELLA : {
+        _SALM_SEROTYPE_FLDNAME : _READS_SALM_SEROTYPE_FLD,
+        _SALM_ANTIGENIC_FORM_FLDNAME : _READS_SALM_SEROTYPE_FLD
     },
-
-    'Escherichia' : {
-        'Pathotype' : 'ecoli.pathotype_pathotypes.json',
-        'Serotype' : 'ecoli.serotype.json',
-        'Toxin' : 'stx_condenser_flds.json'
+    _ESCHERICHIA : {
+        _ECOLI_PATHOTYPE_FLDNAME : _BLAST_ECOLI_PATHOTYPE_FLD,
+        _ECOLI_SEROTYPE_FLDNAME : _BLAST_ECOLI_SEROTYPE_FLD,
+        _ECOLI_TOXIN_FLDNAME : _CONDENSED_ECOLI_STX_FLD
     },
-    'Listeria' : {},
-    'Campylobacter' : {}
+    _LISTERIA : {},
+    _CAMPY : {}
 }
+
+# **** REALLY IMPORTANT ***
+# The mapping to genotyper and its specific setting
+# is created at runtime by joining the name of the genotyper
+# with the setting and using the joined string as the attr id
+# when creating a BioNumerics GUI element. It is later parsed and 
+# split to get the value. Thus:
+# 
+# insilicopcr-max_iupac_mismatch as the ID
 
 attr_joiner = '-'
 
@@ -952,10 +999,10 @@ class GenotypingJob(SingleEntryExecutableJob):
 
                     to_field = ''
 
-                    if fld == 'Serotype':
+                    if fld == _SALM_SEROTYPE_FLDNAME:
                         to_field = information['results'].get('serotype', '')
 
-                    elif fld == 'AntigenForm':
+                    elif fld == _SALM_ANTIGENIC_FORM_FLDNAME:
                         to_field = information['results'].get('formula', '')
 
                     self.Entry.Field(fld).Content = to_field
@@ -971,11 +1018,11 @@ class GenotypingJob(SingleEntryExecutableJob):
 
                     to_field = ''
 
-                    if fld == 'Pathotype':
+                    if fld == _ECOLI_PATHOTYPE_FLDNAME:
 
                         to_field = information['results'][0]
                     
-                    elif fld == 'Serotype':
+                    elif fld == _ECOLI_SEROTYPE_FLDNAME:
 
                         format_str = '{otype}:{htype}'
 
@@ -992,7 +1039,7 @@ class GenotypingJob(SingleEntryExecutableJob):
                             )
 
 
-                    elif fld == 'Toxin':
+                    elif fld == _ECOLI_TOXIN_FLDNAME:
                         to_field = '; '.join(information['results'])
 
                     self.Entry.Field(fld).Content = to_field
@@ -1006,10 +1053,10 @@ class GenotypingJob(SingleEntryExecutableJob):
                 pass
 
             organisms = {
-                'Salmonella': salmonella,
-                'Escherichia': escherichia,
-                'Listeria' : listeria,
-                'Campylobacter' : campy
+                _SALMONELLA: salmonella,
+                _ESCHERICHIA: escherichia,
+                _LISTERIA : listeria,
+                _CAMPY : campy
             }
 
             if not organisms.get(organism, False):

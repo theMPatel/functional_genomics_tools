@@ -30,7 +30,7 @@ from tools.dbinfo import (
 )
 
 from .rb_detection import (
-    build_consensus
+    build_sequences
 )
 
 from tools.bowtie import (
@@ -42,7 +42,7 @@ from tools.bowtie import (
 )
 
 STXTarget = namedtuple('STXTarget', [
-    'locus'
+    'locus',
     'allele',
     'accession',
     'sequence'
@@ -93,7 +93,7 @@ def prepare_pileup(settings, env, dbinfo):
 
     log_message('Success!', 4)
 
-    return pile_up_path
+    return pileup_path
 
 def main(settings, env):
     
@@ -110,8 +110,7 @@ def main(settings, env):
     )
 
     # Check just to make sure we have reads
-
-    if not len(settings.query_reads) != 2:
+    if len(settings.query_reads) < 2:
         raise RuntimeError('No read files provided or improperly paired reads')
 
     # Get the database path
@@ -127,21 +126,21 @@ def main(settings, env):
         database_path, seq_parser = sequence_parser)
 
     log_message('Succesfully loaded sequences and metadata', 3)
-    log_message('Indexing references and executing mapping'2)
+    log_message('Indexing references and executing mapping', 2)
 
-    pileup_path = prepare_pileup(settings, env, dbinfo)
+    pileup_path = prepare_pileup(settings, env, sequence_database)
 
     log_message('Searching alignments for stx subtypes', 2)
 
-    found_sequences = build_consensus(pileup_path, settings.min_ambiguity)
-    results = [f for f in found_sequences if not f.complexity]
+    found_sequences = build_sequences(
+        pileup_path, settings.min_ambiguity, settings.min_coverage)
 
     results_out = sequence_database.results_parser(found_sequences, f=results_parser)
 
     log_message('Found {} unique subtypes!'.format(sum(results_out['results'].values()), 3))
     log_message('Outputting results..', 2)
 
-    write_results(ecoli.stxfinder_genotypes.json, json.dumps(results_out))
+    write_results('ecoli.stxfinder_genotypes.json', json.dumps(results_out))
 
     log_message('Successfully ran STX detection algorithm!', 1)
 
@@ -158,17 +157,18 @@ def results_parser(dbinfo, results):
 
     for seq in results:
         reference_info = dbinfo.sequences.get(seq.ref.split('|')[0], None)
-
+        
         if reference_info is None:
             raise RuntimeError('Missing reference')
 
-        results_out['results'][gene_name] = True
+        results_out['results'][reference_info.locus] = True
 
-        extra.append([
-            'locus': gene_name,
-            'allele': allele,
+        results_out['extra'].append({
+            'locus': reference_info.locus,
+            'allele': reference_info.allele,
             'accession': reference_info.accession,
-            'sequence': ''.join(seq.get_fragment())
-        ])
+            'sequence': ''.join(seq.get_fragment()),
+            'coverage': str(seq.coverage)
+        })
 
     return results_out

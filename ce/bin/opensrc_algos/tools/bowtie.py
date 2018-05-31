@@ -1,6 +1,15 @@
-# -*- coding: utf-8 -*-
+###################################################################
+#
+# Bowtie runtime interface
+#
+# Author: Milan Patel
+# Contact: mpatel5@cdc.gov
+# Version 1.0
+#
+###################################################################
 
 import os
+import sys
 import subprocess as sp
 from .tools import (
     popen,
@@ -8,7 +17,8 @@ from .tools import (
 )
 from .environment import (
     log_message,
-    valid_dir
+    valid_dir,
+    full_path
 )
 
 def bowtie_index(reference, env, name=''):
@@ -219,7 +229,7 @@ def pile_up_sam(bam_sorted, reference, env):
         raise RuntimeError('Invalid reference file')
 
     # We want to make sure that the sorted bam file has been indexed
-    sorted_index_name = os.path.basename(bam_sorted)
+    sorted_index_name = os.path.basename(bam_sorted).split('.')[0]
 
     index_path = bowtie_index(bam_sorted, env, name=sorted_index_name)
     parent_dir = index_path
