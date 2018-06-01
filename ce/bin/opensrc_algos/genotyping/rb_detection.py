@@ -15,7 +15,8 @@ from itertools import izip, izip_longest, product
 from collections import defaultdict, namedtuple
 
 from tools.tools import (
-    counter
+    counter,
+    get_non_iupac
 )
 
 _deletions = re.compile(r'-([0-9]+)([ACGTNacgtn]+)')
@@ -132,13 +133,46 @@ class ConsensusSequence(object):
 
         for i in range(start-1, stop):
             if self.seq[i].ambiguous:
-                yield 'N'
 
-            yield self.seq[i].nuc
+                if isinstance(self.nuc, basestring):
+                    yield self.nuc
+
+                else:
+                    nucs_here = set(self.nuc)
+                    
+                    if '-' in nucs_here:
+                        yield 'N'
+                    
+                    else:
+                        nucs_here = set(nucs_here)
+                        
+                        yield_fstr = '[{}]'
+                        ins = []
+
+                        for n in nucs_here:
+                            if len(n) > 1:
+                                ins.append(n)
+
+                        for insertions in ins:
+                            nucs_here.discard(insertions)
+
+                        final_code = get_non_iupac(frozenset(nucs_here))
+
+                        if final_code is None:
+                            raise RuntimeError("Weird behavior")
+
+                        if ins:
+                            ins.append(final_code)
+                            yield yield_fstr.format('|'.join(ins))
+
+                        else:
+                            yield final_code
+            else:
+                yield self.seq[i].nuc
 
     @property
     def complexity(self):
-        return len(self.ambiguous)
+        return sum(p.complexity for p in self.ambiguous.itervalues())
 
     @property
     def ambiguous(self):
@@ -195,6 +229,7 @@ class ConsensusPosition(object):
         self._ref_call = ''
         self._ambiguous = False
         self._analyze = True
+        self._complexity = 0
 
         self.initialize(pos, nuc, count, ref_call)
 
@@ -232,8 +267,8 @@ class ConsensusPosition(object):
             self.nuc = to_keep.pop()
             self.ambiguous = not self._nuc == self._ref_call
             self.count = counts[self.nuc]
-            
-
+            self._complexity = int(self.ambiguous)
+    
         elif self.ref_call in to_keep:
             self.nuc = self.ref_call
             self.ambiguous = False
@@ -250,6 +285,11 @@ class ConsensusPosition(object):
 
                     # remove the count of nucleotides
                     self.count -= len(removed)
+
+            bases = set(self.nuc)
+
+            for n in bases:
+                self._complexity += len(n)
 
         return self.ambiguous
 
@@ -337,6 +377,11 @@ class ConsensusPosition(object):
         else:
             raise RuntimeError('Reference nucleotide must be string type'
                 ' got {} instead'.format(type(val)))
+
+    @property
+    def complexity(self):
+        return self._complexity
+    
     
 def pileup_iterator(flname=None, flobj=None):
 
@@ -502,16 +547,21 @@ def process_line(line):
         extracted = process_iter_re(read_calls, match_objs=indels, action=indel_action)
         extracted_with_ref_calls = []
 
-        for e in extracted:
-            if isinstance(e, tuple):
-                extracted_with_ref_calls.append(
-                    (e[0].replace('.', reference_call).replace(',', reference_call), e[1])
-                )
+        if dels:
+            for e in extracted:
+                if isinstance(e, tuple):
+                    extracted_with_ref_calls.append(
+                        (e[0].replace('.', reference_call).replace(',', reference_call), e[1])
+                    )
 
-            else:
-                extracted_with_ref_calls.append(
-                    (e.replace(',', reference_call).replace('.', reference_call), 0)
-                )
+                else:
+                    extracted_with_ref_calls.append(
+                        (e.replace(',', reference_call).replace('.', reference_call), 0)
+                    )
+        else:
+            for e in extracted:
+                new_e = sub_asterisk(sub_reference(e, reference_call))
+                extracted_with_ref_calls.append(new_e)
 
         return bool(dels), ref, position, read_count, extracted_with_ref_calls, reference_call
 
@@ -532,17 +582,6 @@ def process_line(line):
 
     else:
         return False, ref, position, read_count, read_calls_list, reference_call
-
-    # if _substitutions.search(read_calls) or '-' in read_calls:
-    #     # Replace all of the calls that are forward or reverse
-    #     # matches with the reference call
-    #     read_calls = _reference.sub(reference_call, read_calls).upper()
-    #     return False, ref, position, read_count, list(read_calls), reference_call
-
-    # else:
-    #     # If there is no other call than the reference
-    #     # we can just return the call
-    #     return False, ref, position, read_count, reference_call, reference_call
 
 def extend_detection_window(pile, processed_stack):
 
@@ -723,6 +762,7 @@ def build_consensus(pileup_file, ambiguity_threshold):
     while pile:
 
         next_line = next(pile)
+
         dels, ref, position, read_count, read_calls, reference_call = process_line(next_line)
 
         if position < current_consensus.stop:
@@ -735,6 +775,7 @@ def build_consensus(pileup_file, ambiguity_threshold):
             position_offset = 0
 
         reference = ref
+
 
         if not read_count:
             current_consensus.add_nuc(reference, position+position_offset, '-', read_count, reference_call)
@@ -753,7 +794,7 @@ def build_consensus(pileup_file, ambiguity_threshold):
 
         current_consensus.add_nuc(reference, position+position_offset, read_calls, read_count, reference_call)
 
-def build_sequences(pileup_file, ambiguity_threshold, min_coverage):
+def build_sequences(pileup_file, ambiguity_threshold, min_coverage, max_complexity):
 
     final_sequences = []
 
@@ -767,4 +808,3 @@ def build_sequences(pileup_file, ambiguity_threshold, min_coverage):
         final_sequences.append(c_sequence)
 
     return [f for f in final_sequences if not f.complexity]
-

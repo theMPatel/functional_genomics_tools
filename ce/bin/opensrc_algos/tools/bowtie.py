@@ -58,7 +58,6 @@ def bowtie_index(reference, env, name=''):
         ' '.join(cmd_args)))
 
     return_code, out, err = popen(cmd_args)
-
     if return_code:
         log_error(err.strip())
         raise RuntimeError('Error building bowtie2 index')

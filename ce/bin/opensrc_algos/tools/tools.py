@@ -76,10 +76,16 @@ _NUC_SIBLINGS = {
    'N': "ACGT"
 }
 
+_SET_TO_NON_ACTG = {}
+
 # Convert values to set for easy membership
 # checking
 for nuc, pairs in _NUC_SIBLINGS.iteritems():
-    _NUC_SIBLINGS[nuc] = set(pairs)
+    _NUC_SIBLINGS[nuc] = frozenset(pairs)
+    _SET_TO_NON_ACTG.__setitem__(_NUC_SIBLINGS.get(nuc), nuc)
+
+def get_non_iupac(f_set):
+    return _SET_TO_NON_ACTG.get(f_set, None)
 
 def popen(args, stdout=None, stderr=None, cwd=None, shell=False):
 
