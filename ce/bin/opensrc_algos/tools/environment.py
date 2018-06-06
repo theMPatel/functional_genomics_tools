@@ -4,7 +4,7 @@
 # You can use this for basically anything you want to
 # implement into the Calculation Engine
 # 
-# Author: Milan Patel, with some direction from key mentors ;)
+# Author: Milan Patel
 # Contact: mpatel5@cdc.gov
 # Version 1.0
 #

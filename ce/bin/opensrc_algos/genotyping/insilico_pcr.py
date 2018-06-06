@@ -2,7 +2,7 @@
 #
 # Caller script for insilico pcr
 # 
-# Author: Milan Patel, with some direction from key mentors ;)
+# Author: Milan Patel
 # Contact: mpatel5@cdc.gov
 # Version 1.0
 #

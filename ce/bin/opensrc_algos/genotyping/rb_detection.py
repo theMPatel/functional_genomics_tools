@@ -11,7 +11,7 @@
 import re
 import os
 import sys
-from itertools import izip, izip_longest, product
+from itertools import izip, izip_longest, product, repeat
 from collections import defaultdict, namedtuple
 
 from tools.tools import (
@@ -23,7 +23,7 @@ _deletions = re.compile(r'-([0-9]+)([ACGTNacgtn]+)')
 _insertions = re.compile(r'\+([0-9]+)([ACGTNacgtn]+)')
 _substitutions = re.compile(r'[ACGTNacgtn]')
 _remove = re.compile(r'[$<>]')
-_start_read = re.compile(r'[\^]')
+_start_read = re.compile(r'(\^)(.)')
 _reference = re.compile(r'[.,]')
 _asterisk = re.compile(r'[\*]')
 
@@ -134,11 +134,11 @@ class ConsensusSequence(object):
         for i in range(start-1, stop):
             if self.seq[i].ambiguous:
 
-                if isinstance(self.nuc, basestring):
-                    yield self.nuc
+                if isinstance(self.seq[i].nuc, basestring):
+                    yield self.seq[i].nuc
 
                 else:
-                    nucs_here = set(self.nuc)
+                    nucs_here = set(map(str.upper, self.seq[i].nuc))
                     
                     if '-' in nucs_here:
                         yield 'N'
@@ -159,7 +159,8 @@ class ConsensusSequence(object):
                         final_code = get_non_iupac(frozenset(nucs_here))
 
                         if final_code is None:
-                            raise RuntimeError("Weird behavior")
+                            print(frozenset(str(nucs_here)))
+                            raise RuntimeError()
 
                         if ins:
                             ins.append(final_code)
@@ -241,7 +242,7 @@ class ConsensusPosition(object):
 
         if isinstance(nuc, list):
             self.ambiguous = True
-            self.nuc = nuc
+            self.nuc = list(map(str.upper, nuc))
 
         elif isinstance(nuc, basestring):
             self.nuc = nuc.upper()
@@ -382,7 +383,6 @@ class ConsensusPosition(object):
     def complexity(self):
         return self._complexity
     
-    
 def pileup_iterator(flname=None, flobj=None):
 
     if flobj:
@@ -417,31 +417,6 @@ def _pileup_iterator(flobj):
 def base_action(read_calls, index, final, match):
     return match.end()
 
-def delete_action(read_calls, index, final, match):
-
-    # Just to cover our bases to make sure
-    # that the logic called the proper
-    # function
-    assert read_calls[index] == '-'
-
-    # Add the number of deletions to the last sequence
-    # We will need it to know how much to expand the
-    # window by
-    final[-1] = (final[-1], int(match.group(1)))
-
-    return match.end()
-
-def insert_action(read_calls, index, final, match):
-
-    # Just to cover our bases to make sure
-    # that the logic called the proper
-    # function
-    assert read_calls[index] == '+'
-
-    final[-1] += match.group(2).upper()
-
-    return match.end()
-
 def indel_action(read_calls, index, final, match):
 
     if read_calls[index] == '+':
@@ -453,10 +428,6 @@ def indel_action(read_calls, index, final, match):
     elif read_calls[index] == '-':
         final[-1] = (final[-1], int(match.group(1)))
 
-    else:
-        raise RuntimeError('Error proccessing indel'
-            ' in line:\n\t {}'.format(read_calls))
-
     return match.end()
 
 def _process_iter_re(read_calls, match_obj, index=0, final=None):
@@ -467,7 +438,7 @@ def _process_iter_re(read_calls, match_obj, index=0, final=None):
     upto = match_obj.start()
 
     while index < upto:
-        final.append(read_calls[index])
+        final.append(read_calls[index].upper())
         index += 1
 
     return index, final
@@ -498,7 +469,7 @@ def process_iter_re(read_calls, matcher=None, match_objs=None, action=None):
             index = action(read_calls, index, final, match)
 
         while index < len(read_calls):
-            final.append(read_calls[index])
+            final.append(read_calls[index].upper())
             index += 1
 
     elif matcher:
@@ -509,7 +480,7 @@ def process_iter_re(read_calls, matcher=None, match_objs=None, action=None):
             index = action(read_calls, index, final, match)
 
         while index < len(read_calls):
-            final.append(read_calls[index])
+            final.append(read_calls[index].upper())
             index +=1
 
     return final
@@ -543,6 +514,8 @@ def process_line(line):
 
         indels = list(ins)
         indels.extend(dels)
+        indels.extend(m for m in _start_read.finditer(read_calls))
+        indels.extend(m for m in _remove.finditer(read_calls))
         indels.sort(key=lambda x: x.start())
         extracted = process_iter_re(read_calls, match_objs=indels, action=indel_action)
         extracted_with_ref_calls = []
@@ -626,13 +599,22 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
 
     all_lines_fixed = []
 
-    for l in all_lines:
-        all_lines_fixed.append(list())
-        for n in l:
-            if isinstance(n, tuple):
-                all_lines_fixed[-1].append(n[0])
+    for i, l in enumerate(all_lines):
+
+        if isinstance(l, list):
+            all_lines_fixed.append(list())
+            for n in l:
+                if isinstance(n, tuple):
+                    all_lines_fixed[-1].append(n[0])
+                else:
+                    all_lines_fixed[-1].append(n)
+
+        else:
+            if i == 0:
+                count = read_count
             else:
-                all_lines_fixed[-1].append(n)
+                count = processed_stack[i-1][3]
+            all_lines_fixed.append(repeat(l, count))
 
     #
     # all_lines represents a window: [
@@ -691,7 +673,46 @@ def detect_deletion_window(pile, ref, position, read_count, read_calls,
 
     # If we reduce the complexity down
     # to just one substring, hooray!
-    if len(counts) == 1:
+    if len(counts) == 0:
+        first_cp = ConsensusPosition(
+            position,
+            '-',
+            0,
+            ref_call
+        )
+        first_cp.ambiguous = True
+        first_cp.analyze = False
+
+        current_consensus.add_nuc(
+            ref,
+            first_cp.pos,
+            first_cp,
+            first_cp.count,
+            ref_call
+        )
+
+        for i in range(len(processed_stack)):
+            cp = ConsensusPosition(
+                processed_stack[i][2],
+                '-',
+                0,
+                processed_stack[i][5]
+            )
+
+            cp.ambiguous = True
+            cp.analyze = False
+
+            current_consensus.add_nuc(
+                processed_stack[i][1],
+                cp.pos,
+                cp,
+                cp.count,
+                processed_stack[i][5]
+            )
+
+        return 0
+
+    elif len(counts) == 1:
         final_seqs = counts.keys()[0]
         count = counts.values()[0]
         current_consensus.add_nuc(ref, position, final_seqs[0], count, ref_call)
@@ -796,7 +817,8 @@ def build_consensus(pileup_file, ambiguity_threshold):
 
 def build_sequences(pileup_file, ambiguity_threshold, min_coverage, max_complexity):
 
-    final_sequences = []
+    final_sequences = {}
+    final = []
 
     for reference, c_sequence in build_consensus(pileup_file,
         ambiguity_threshold):
@@ -804,7 +826,26 @@ def build_sequences(pileup_file, ambiguity_threshold, min_coverage, max_complexi
         if c_sequence.coverage < min_coverage:
             continue
 
-        c_sequence.flatten()
-        final_sequences.append(c_sequence)
+        if 'stx2a' in reference:
+            pause = 1
 
-    return [f for f in final_sequences if not f.complexity]
+        c_sequence.flatten()
+
+        new_ref = reference.split('|')[0].split('_')[0]
+
+        if new_ref in final_sequences:
+            final_sequences[new_ref].append(c_sequence)
+        else:
+            final_sequences[new_ref] = [c_sequence]
+
+    for ref, seqs in final_sequences.iteritems():
+        
+        if not seqs:
+            continue
+
+        seqs.sort(key=lambda x: x.complexity)
+
+        if seqs[0].complexity <= max_complexity:
+            final.append(seqs[0])
+
+    return final

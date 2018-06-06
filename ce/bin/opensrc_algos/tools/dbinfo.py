@@ -2,7 +2,7 @@
 #
 # Methods and classes for reference databases
 # 
-# Author: Milan Patel, with some direction from key mentors ;)
+# Author: Milan Patel
 # Contact: mpatel5@cdc.gov
 # Version 1.0
 #

@@ -2,7 +2,7 @@
 #
 # Detects the various stx gene variants for Escherichia
 #
-# Author: Milan Patel, with some direction from key mentors ;)
+# Author: Milan Patel
 # Contact: mpatel5@cdc.gov
 # Version 1.0
 #
@@ -133,7 +133,7 @@ def main(settings, env):
     log_message('Searching alignments for stx subtypes', 2)
 
     found_sequences = build_sequences(
-        pileup_path, settings.min_ambiguity, settings.min_coverage)
+        pileup_path, settings.min_ambiguity, settings.min_coverage, settings.max_complexity)
 
     results_out = sequence_database.results_parser(found_sequences, f=results_parser)
 
@@ -168,7 +168,8 @@ def results_parser(dbinfo, results):
             'allele': reference_info.allele,
             'accession': reference_info.accession,
             'sequence': ''.join(seq.get_fragment()),
-            'coverage': str(seq.coverage)
+            'coverage': str(seq.coverage),
+            'complexity': str(seq.complexity)
         })
 
     return results_out
