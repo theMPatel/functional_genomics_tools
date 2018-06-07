@@ -1,0 +1,15 @@
+development:
+  script:
+    - cd ~
+    - touch development
+
+  only:
+    - development
+
+test:
+  script:
+    - cd ~
+    - touch test
+
+  only:
+    - test
