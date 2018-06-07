@@ -56,8 +56,8 @@ def main(settings, env):
 
     # stx subtypes
     subtypes = {
-        'stx1': range(ord('a'), ord('f')+1),
-        'stx2': range(ord('a'), ord('f')+1)
+        'stx1': [97, 99, 100],
+        'stx2': range(ord('a'), ord('g')+1)
     }
 
     stx_subtypes = {}
