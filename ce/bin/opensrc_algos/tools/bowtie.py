@@ -41,7 +41,7 @@ def bowtie_index(reference, env, name=''):
     valid_dir(index_dir)
 
     bowtie_index_path = full_path(
-        os.path.join(env.toolsdir, 'bowtie2', 'bowtie2-build')
+        os.path.join(env.toolsdir, 'bowtie2_dir', 'bowtie2-build')
     )
 
     if not os.path.exists(bowtie_index_path):
@@ -73,7 +73,7 @@ def paired_bowtie2(read_files, env, index_path='', reference= ''):
         raise RuntimeError('Invalid read files provided')
 
     bowtie2_path = full_path(
-        os.path.join(env.toolsdir, 'bowtie2', 'bowtie2')
+        os.path.join(env.toolsdir, 'bowtie2_dir', 'bowtie2')
     )
 
     if not os.path.exists(bowtie2_path):

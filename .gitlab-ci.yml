@@ -1,6 +1,6 @@
 development:
   script:
-    - cd ~
+    - cd /data/
     - touch development
 
   only:
