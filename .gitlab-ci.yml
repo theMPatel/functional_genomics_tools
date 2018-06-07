@@ -1,4 +1,8 @@
+stages:
+  - deploy
+
 development:
+  stage: deploy
   script:
     - cd /data/
     - touch development
@@ -6,10 +10,17 @@ development:
   only:
     - development
 
+  tags:
+    HPC-dev
+
 test:
+  stage: deploy
   script:
     - cd ~
     - touch test
 
   only:
     - test
+
+  tags:
+    HPC-test
