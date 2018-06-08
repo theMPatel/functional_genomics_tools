@@ -256,7 +256,9 @@ def save_dirty_files(clean_files):
 
     dirty_files = set()
 
-    dirty_files.update(f for d in dirs_to_check for f in os.listdir(d))
+    for d in dirs_to_check:
+        for f in os.listdir(d):
+            dirty_files.update(os.path.join(d,f))
 
     out_file_path = os.path.join(os.getcwd(), 'dirty.txt')
 
