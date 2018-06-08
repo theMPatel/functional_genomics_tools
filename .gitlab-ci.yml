@@ -3,23 +3,19 @@ stages:
 
 development:
   stage: deploy
+  
   script:
     - pwd>/data/development.txt
-
-  only:
-    - development
 
   tags:
     - HPC-dev
 
 test:
   stage: deploy
+  
   script:
     - cd ~
     - touch test
-
-  only:
-    - test
 
   tags:
     - HPC-test
