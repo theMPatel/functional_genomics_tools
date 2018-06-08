@@ -11,6 +11,7 @@ import pwd
 import grp
 import sys
 import json
+import errno
 import shutil
 import logging
 import logging.handlers
@@ -68,6 +69,16 @@ def setup_logging(
             repo=_REPO
         )
     )
+
+    if not os.path.exists(os.path.dirname(rotating_log_file_path)):
+
+        try:
+            os.makedirs(os.path.dirname(rotating_log_file_path))
+        
+        except OSError as exc:
+            
+            if exc.errno != errno.EEXIST:
+                raise
 
     handler = logging.handlers.RotatingFileHandler(
         rotating_log_file_path,
