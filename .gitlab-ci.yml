@@ -12,6 +12,9 @@ development:
 
   tags:
     - HPC-dev
+  
+  artifacts:
+    - dirty.txt
 
 test:
   stage: deploy
@@ -24,3 +27,6 @@ test:
   
   tags:
     - HPC-test
+
+  artifacts:
+    - dirty.txt

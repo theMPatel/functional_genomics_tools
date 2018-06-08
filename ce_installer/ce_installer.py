@@ -200,6 +200,7 @@ def deploy(file_tree, environment, root, repo_directory):
             )
         )
 
+    _LOGGER.info('Beginning deployment...')
     for file in file_tree:
 
         # We only want to grab things that are from the
@@ -216,13 +217,17 @@ def deploy(file_tree, environment, root, repo_directory):
         paths[0] = ce_root_dir
 
         dst = os.path.join(*paths)
+        _LOGGER.info('\tCopying: {} -> {}'.format(src, dst))
 
         copy_func(src, dst)
         dos2unix(dst)
         change_owner(dst)
         change_perms(dst)
 
+    _LOGGER.info('File copy succesful!')
+    _LOGGER.info('Getting version info...')
     repo_version = get_version(repo_directory)
+
     version_dir = os.path.join(ce_root_dir, 'versions', _REPO)
 
     if not os.path.exists(version_dir):
@@ -233,15 +238,52 @@ def deploy(file_tree, environment, root, repo_directory):
     with open(version_path, 'w') as f:
         f.write(repo_version)
 
+    _LOGGER('\tWrote version info to file: {}'.format(
+        version_path))
+
+def save_dirty_files(file_tree):
+
+    clean_files = set(file_tree)
+    dirs_to_check = set()
+
+    for f in clean_files:
+        dirs_to_check.add(os.path.dirname(f))
+
+    dirty_files = set()
+
+    dirty_files.update(f for d in dirs_to_check for f in os.listdir(d))
+
+    out_file_path = os.path.join(os.getcwd(), 'dirty.txt')
+
+    dirty_files.difference_update(clean_files)
+
+    _LOGGER.info('Found {} dirty files'.format(str(len(dirty_files))))
+
+    with open(out_file_path, 'w') as f:
+        f.write('\n'.join(dirty_files))
+
 def main():
 
     root, env = parse_cmdline()
     setup_logging(environment=env)
 
+    _LOGGER.info('Beginning deployment for root: {} on environment: {}'.format(
+        root, env))
+
+    _LOGGER.info('Retrieving source tree...')
     src_tree = git_tree(os.getcwd())
+
+    _LOGGER.info('\tSuccess!')
 
     deploy(src_tree, env, root, os.getcwd())
 
+    _LOGGER.info('Copy successful!')
+
+    _LOGGER.info('Checking for dirty files')
+
+    save_dirty_files(src_tree)
+
+    _LOGGER.info('Deployment successful, good job!')
 
 if __name__ == '__main__':
 
