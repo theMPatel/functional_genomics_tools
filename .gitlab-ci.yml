@@ -4,8 +4,7 @@ stages:
 development:
   stage: deploy
   script:
-    - cd /data/
-    - touch development
+    - pwd>/data/development.txt
 
   only:
     - development
