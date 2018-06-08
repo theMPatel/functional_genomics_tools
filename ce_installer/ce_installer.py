@@ -36,13 +36,13 @@ def parse_cmdline():
 
     parser.add_argument(
         '--env',
-        type=basestring,
+        type=str,
         required=True
     )
 
     parser.add_argument(
         '--root',
-        type = basestring,
+        type = str,
         required=True
     )
 
@@ -68,7 +68,7 @@ def setup_logging(
         )
     )
 
-    handler = logging.handlers.RotatingFileHandler(
+    handler = logging.RotatingFileHandler(
         rotating_log_file_path,
         maxBytes = _MAX_LOG_SIZE,
         backupCount = _MAX_LOG_FILES
