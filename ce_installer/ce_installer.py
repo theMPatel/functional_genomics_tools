@@ -200,6 +200,8 @@ def deploy(file_tree, environment, root, repo_directory):
             )
         )
 
+    destination_files = set()
+
     _LOGGER.info('Beginning deployment...')
     for file in file_tree:
 
@@ -224,6 +226,8 @@ def deploy(file_tree, environment, root, repo_directory):
         change_owner(dst)
         change_perms(dst)
 
+        destination_files.add(dst)
+
     _LOGGER.info('File copy succesful!')
     _LOGGER.info('Getting version info...')
     repo_version = get_version(repo_directory)
@@ -241,9 +245,10 @@ def deploy(file_tree, environment, root, repo_directory):
     _LOGGER.info('\tWrote version info to file: {}'.format(
         version_path))
 
-def save_dirty_files(file_tree):
+    return destination_files
 
-    clean_files = set(file_tree)
+def save_dirty_files(clean_files):
+
     dirs_to_check = set()
 
     for f in clean_files:
@@ -275,13 +280,13 @@ def main():
 
     _LOGGER.info('\tSuccess!')
 
-    deploy(src_tree, env, root, os.getcwd())
+    dst_files = deploy(src_tree, env, root, os.getcwd())
 
     _LOGGER.info('Copy successful!')
 
     _LOGGER.info('Checking for dirty files')
 
-    save_dirty_files(src_tree)
+    save_dirty_files(dst_files)
 
     _LOGGER.info('Deployment successful, good job!')
 
