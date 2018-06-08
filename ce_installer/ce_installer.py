@@ -238,7 +238,7 @@ def deploy(file_tree, environment, root, repo_directory):
     with open(version_path, 'w') as f:
         f.write(repo_version)
 
-    _LOGGER('\tWrote version info to file: {}'.format(
+    _LOGGER.info('\tWrote version info to file: {}'.format(
         version_path))
 
 def save_dirty_files(file_tree):
