@@ -171,7 +171,7 @@ def get_version(repo_directory):
 
     git_version = ['git', 'describe']
 
-    results = popen(git_version, repo_directory)
+    results = popen(git_version, cwd=repo_directory)
 
     if results[0]:
         raise RuntimeError('Error getting version tag: {}'.format(
@@ -206,7 +206,7 @@ def deploy(file_tree, environment, root, repo_directory):
         # ce directory
         paths = file.split(os.sep)
 
-        if paths[0] != 'ce' or paths[0] != 'shared':
+        if paths[0] != 'ce' and paths[0] != 'shared':
             continue
 
         src = full_path(
@@ -240,7 +240,7 @@ def main():
 
     src_tree = git_tree(os.getcwd())
 
-    deploy(src_tree, env, root, os.getcw())
+    deploy(src_tree, env, root, os.getcwd())
 
 
 if __name__ == '__main__':
