@@ -48,7 +48,7 @@ def parse_cmdline():
 
     args = parser.parse_args()
 
-    return parser.root, parser.env
+    return args.root, args.env
 
 def setup_logging(
     fmt='%(asctime)s\t%(levelname)s\t%(message)s',
