@@ -267,7 +267,9 @@ def save_dirty_files(clean_files):
     _LOGGER.info('Found {} dirty files'.format(str(len(dirty_files))))
 
     with open(out_file_path, 'w') as f:
-        f.write('\n'.join(dirty_files))
+        for file in dirty_files:
+            if not os.path.isdir(file):
+                f.write(file+'\n')
 
 def main():
 
