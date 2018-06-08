@@ -6,6 +6,9 @@ development:
   
   script:
     - "/opt/python/bin/python ./ce_installer/ce_installer.py --root ceroot --env dev"
+  
+  only:
+    - development
 
   tags:
     - HPC-dev
@@ -16,5 +19,8 @@ test:
   script:
     - "/opt/python/bin/python ./ce_installer/ce_installer.py --root ceroot --env test"
 
+  only:
+    - test
+  
   tags:
     - HPC-test
