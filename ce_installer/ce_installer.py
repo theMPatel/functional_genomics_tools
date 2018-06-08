@@ -13,6 +13,7 @@ import sys
 import json
 import shutil
 import logging
+import logging.handlers
 import argparse
 import traceback
 import subprocess as sp
@@ -68,7 +69,7 @@ def setup_logging(
         )
     )
 
-    handler = logging.RotatingFileHandler(
+    handler = logging.handlers.RotatingFileHandler(
         rotating_log_file_path,
         maxBytes = _MAX_LOG_SIZE,
         backupCount = _MAX_LOG_FILES
