@@ -55,7 +55,8 @@ def setup_logging(
     datefmt='%Y-%m-%d %H:%M:%S',
     level=_DEFAULT_LOGGING_LEVEL,
     environment='dev'):
-
+    
+    global _LOGGER
     _LOGGER = logging.getLogger()
 
     rotating_log_file_path = os.path.join(
@@ -222,9 +223,9 @@ def deploy(file_tree, environment, root, repo_directory):
 
 def main():
 
-    setup_logging()
-
     root, env = parse_cmdline()
+    setup_logging(environment=env)
+
     src_tree = git_tree(os.getcwd())
 
     deploy(src_tree, env, root, os.getcw())
