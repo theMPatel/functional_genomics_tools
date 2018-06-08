@@ -238,5 +238,6 @@ if __name__ == '__main__':
 
     except:
         ret_val = 1
+        _LOGGER.exception('Error deploying code!')
 
     sys.exit(ret_val)
