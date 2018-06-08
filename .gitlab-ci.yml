@@ -14,7 +14,10 @@ development:
     - HPC-dev
   
   artifacts:
+    paths:
     - dirty.txt
+
+    expire_in: 1 week
 
 test:
   stage: deploy
@@ -29,4 +32,7 @@ test:
     - HPC-test
 
   artifacts:
+    paths:
     - dirty.txt
+
+    expire_in: 1 week
