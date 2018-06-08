@@ -5,7 +5,7 @@ development:
   stage: deploy
   
   script:
-    - pwd>/data/development.txt
+    - "/opt/python/bin/python ./ce_installer/ce_installer.py --root ceroot --env dev"
 
   tags:
     - HPC-dev
@@ -14,8 +14,7 @@ test:
   stage: deploy
   
   script:
-    - cd ~
-    - touch test
+    - "/opt/python/bin/python ./ce_installer/ce_installer.py --root ceroot --env test"
 
   tags:
     - HPC-test
