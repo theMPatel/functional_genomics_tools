@@ -10,8 +10,8 @@ development:
   only:
     - development
 
-  # tags:
-  #   - HPC-dev
+  tags:
+    - HPC-dev
   
   artifacts:
     paths:
@@ -28,8 +28,8 @@ test:
   only:
     - test
   
-  # tags:
-  #   - HPC-test
+  tags:
+    - HPC-test
 
   artifacts:
     paths:
