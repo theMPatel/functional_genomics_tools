@@ -16,7 +16,6 @@ from tools.environment import (
     log_message,
     log_error,
     log_progress,
-    log_ephemeral,
     log_algo_version,
     write_results
 )
@@ -64,7 +63,7 @@ def sequence_parser(header, sequence, sep='_'):
 def main(settings, env):
 
     # Log the initial message
-    log_message('Starting running mutation finder algorithm', 1)
+    log_message('Starting running mutation finder algorithm')
 
     # Write the version number of the database and algorithm
     version_path = settings['version']
@@ -81,11 +80,11 @@ def main(settings, env):
 
     # Log it
     log_message('Database path found at: {}'.format(
-        database_path), 1)
+        database_path))
 
     # Let's load it all
     log_message('Loading resistance sequences and associated'
-        ' information', 2)
+        ' information')
 
     sequence_database = DbInfo(
         database_path, seq_parser = sequence_parser)
@@ -93,8 +92,8 @@ def main(settings, env):
     # Load the mutation targets
     sequence_database.load_extras()
 
-    log_message('Successfully loaded sequences and metadata!', 3)
-    log_message('Running mutation finder pipeline...', 2)
+    log_message('Successfully loaded sequences and metadata!')
+    log_message('Running mutation finder pipeline...')
 
     # The results will come back without being filtered
     results = mutation_detector(
@@ -108,14 +107,14 @@ def main(settings, env):
     final_results, antibios_out = sequence_database.results_parser(results, f=results_parser)
 
     log_message('Predicting {} mutations of interest'.format(
-        sum(final_results['results'].values())), 3)
+        sum(final_results['results'].values())))
 
-    log_message('Writing results out...', 2)
+    log_message('Writing results out...')
 
     write_results('resistance.point.json', json.dumps(final_results))
 
     # Success!
-    log_message('Successfully ran mutation finder algorithm!', 3)
+    log_message('Successfully ran mutation finder algorithm!')
 
     return antibios_out
 
@@ -184,8 +183,7 @@ class DbInfo(DbInfo):
         file_path = os.path.join(self._dirpath, 'resistens-overview.txt')
 
         if not os.path.exists(file_path):
-            raise RuntimeError('Missing mutations file for interpretations..',
-                2)
+            raise RuntimeError('Missing mutations file for interpretations..')
 
         with open(file_path, 'r') as f:
 
@@ -253,7 +251,7 @@ def results_parser(dbinfo, interpretations):
         'extra' : []
     }
 
-    log_message('Determining optimal gene coverages...', 2)
+    log_message('Determining optimal gene coverages...')
     for gene, mutation in interpretations.iteritems():
 
         for mutation_info in mutation:

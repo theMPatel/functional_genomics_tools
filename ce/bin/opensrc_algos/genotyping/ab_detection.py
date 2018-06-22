@@ -12,7 +12,6 @@ from tools.environment import (
     log_message,
     log_error,
     log_progress,
-    log_ephemeral,
     valid_dir
 )
 
@@ -35,13 +34,14 @@ from itertools import combinations, product, izip
 from tools.fancy_tools import Disjointset
 from collections import defaultdict, namedtuple
 
+
 GenotypeRegion = namedtuple('GenotypeRegion', ['coverage', 'identity', 'locations'])
 
 def presence_detector(sequence_database, query_path, cached_query, percent_identity,
     min_relative_coverage, min_merge_overlap, search_fragments, env):
     
     # Let's export the references
-    log_message('Exporting references...', 2)
+    log_message('Exporting references...')
 
     # Make the path
     reference_dir = os.path.join(env.localdir, 'blastdb')
@@ -54,18 +54,18 @@ def presence_detector(sequence_database, query_path, cached_query, percent_ident
     # Export the reference sequences for blast database creation
     sequence_database.export_sequences(reference_path)
 
-    log_message('Successfully exported reference database...', 3)
+    log_message('Successfully exported reference database...')
 
     # Create the path to the blast database
     blast_db_path = os.path.join(env.localdir, 'blastdb', 'db.fasta')
 
-    log_message('Creating blast database...', 2)
+    log_message('Creating blast database...')
 
     # Create the blast database
     create_blastdb(reference_path, blast_db_path, env)
 
     # Log that we were successful
-    log_message('Successfully created blast database!', 3)
+    log_message('Successfully created blast database!')
 
     # Create the blast settings so that we can run the thing!
     blast_settings = BLASTSettings(
@@ -76,7 +76,7 @@ def presence_detector(sequence_database, query_path, cached_query, percent_ident
         include_sequences = False
         )
 
-    log_message('BLASTing query genome against reference database', 2)
+    log_message('BLASTing query genome against reference database')
     
     # Run the alignment
     results = align_blast(
@@ -90,15 +90,15 @@ def presence_detector(sequence_database, query_path, cached_query, percent_ident
     contig_sizes = {contig:len(sequence) for \
         contig, sequence in cached_query.iteritems()}
 
-    log_message('Determining genotype coverages...', 2)
+    log_message('Determining genotype coverages...')
     
     # Create the hit objects
     regions = Genotype.find_regions(results, contig_sizes, sequence_database)
 
-    log_message('Found {} potential genotypes!'.format(len(regions)), 3)
+    log_message('Found {} potential genotypes!'.format(len(regions)))
 
     # Figure out which ones are actually worth keeping
-    log_message('Determining accetable genotypes...', 2)
+    log_message('Determining accetable genotypes...')
 
     # Remove those that do not have a predicted genotype
     to_remove = set()
@@ -116,7 +116,7 @@ def presence_detector(sequence_database, query_path, cached_query, percent_ident
         del regions[rm]
 
     log_message('After filtering, {} genotypes were retained'.format(
-        len(regions)), 3)
+        len(regions)))
 
     # Eliminate any overlap between genotypes of different references
     # and return the accepted genotypes
@@ -124,7 +124,7 @@ def presence_detector(sequence_database, query_path, cached_query, percent_ident
     accepted = eliminate_overlap(regions, min_merge_overlap)
 
     log_message('After overlap analysis, {} genotypes were retained!'.format(
-        len(accepted)), 3)
+        len(accepted)))
 
     return accepted
 
@@ -132,7 +132,7 @@ def mutation_detector(sequence_database, query_path, percent_identity,
     min_relative_coverage, env):
     
     # Let's export the references
-    log_message('Exporting references...', 2)
+    log_message('Exporting references...')
 
     # Make the path
     reference_dir = os.path.join(env.localdir, 'blastdb')
@@ -145,18 +145,18 @@ def mutation_detector(sequence_database, query_path, percent_identity,
     # Export the reference sequences for blast database creation
     sequence_database.export_sequences(reference_path)
 
-    log_message('Successfully exported reference database...', 3)
+    log_message('Successfully exported reference database...')
 
     # Create the path to the blast database
     blast_db_path = os.path.join(env.localdir, 'blastdb', 'db.fasta')
 
-    log_message('Creating blast database...', 2)
+    log_message('Creating blast database...')
 
     # Create the blast database
     #create_blastdb(reference_path, blast_db_path, env)
 
     # Log that we were successful
-    log_message('Successfully created blast database!', 3)
+    log_message('Successfully created blast database!')
 
     # Create the blast settings so that we can run the thing!
     # Return the sequences so that we can see if we've found
@@ -169,7 +169,7 @@ def mutation_detector(sequence_database, query_path, percent_identity,
         include_sequences = True
         )
 
-    log_message('BLASTing query genome against reference database', 2)
+    log_message('BLASTing query genome against reference database')
     
     # Run the alignment
     results = align_blast_nodb(
@@ -179,9 +179,9 @@ def mutation_detector(sequence_database, query_path, percent_identity,
         env
     )
 
-    log_message('Successfully BLASTed query genome against reference database', 3)
+    log_message('Successfully BLASTed query genome against reference database')
 
-    log_message('Searching for mutations...', 2)
+    log_message('Searching for mutations...')
 
     # Figure out the mutations that exist in the sequences
     interpretations = find_mutations(
@@ -190,7 +190,7 @@ def mutation_detector(sequence_database, query_path, percent_identity,
         min_relative_coverage)
 
     log_message('Retained {} gene regions after gene analysis'.format(
-        len(interpretations)), 3)
+        len(interpretations)))
 
     return interpretations
 
@@ -202,7 +202,7 @@ def find_mutations(sequence_database, results, min_relative_coverage):
         regions[hit.reference_id].append(hit)
 
     log_message('Found {} potential regions of interest'.format(
-        str(len(regions))), 3)
+        str(len(regions))))
 
     # Store the found resistance:
     mutation_results = defaultdict(list)

@@ -16,7 +16,6 @@ from tools.environment import (
     log_message,
     log_error,
     log_progress,
-    log_ephemeral,
     log_algo_version,
     write_results
 )
@@ -51,13 +50,14 @@ def sequence_parser(header, sequence, sep = '_'):
 
 def main(settings, env):
 
-    log_message('Starting running presence/absence ecoli serotype algorithm', 1)
+    log_message('Starting running presence/absence ecoli serotype algorithm')
 
     # Write the version number of the database and algorithm
     log_algo_version(
         algo_version = None,
         settings = settings,
-        env = env
+        env = env,
+        base_depth = base_depth
     )
 
     # Get the database path
@@ -65,21 +65,21 @@ def main(settings, env):
 
     # Log it
     log_message('Database path found at: {}'.format(
-        database_path), 2)
+        database_path))
 
     # Load the resistance sequences:
     log_message('Loading serotype sequences and associated'
-        ' information...', 3)
+        ' information...')
 
     # Load it
     sequence_database = DbInfo(
         database_path, seq_parser = sequence_parser)
 
     # Loading the sequences
-    log_message('Successfully loaded sequences', 3)
+    log_message('Successfully loaded sequences')
 
     # We were successful in running the algorithm
-    log_message('Running serotype algorithm...', 2)
+    log_message('Running serotype algorithm...')
 
     # Run the presence detector
     results = presence_detector(
@@ -97,11 +97,11 @@ def main(settings, env):
     results_out = sequence_database.results_parser(results, f=results_parser)
 
     # Write the results out
-    log_message('Writing results out...', 2)
+    log_message('Writing results out...')
     write_results('ecoli.serotype.json', json.dumps(results_out))
 
     # Success!
-    log_message('Successfully ran serotype algorithm!', 3)
+    log_message('Successfully ran serotype algorithm!')
 
 
 def results_parser(dbinfo, results):

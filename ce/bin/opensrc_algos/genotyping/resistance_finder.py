@@ -12,7 +12,6 @@ from tools.environment import (
     log_message,
     log_error,
     log_progress,
-    log_ephemeral,
     log_algo_version,
     write_results
 )
@@ -27,7 +26,6 @@ from .ab_detection import (
     presence_detector,
 )
 
-
 import os
 import re
 import json
@@ -36,10 +34,11 @@ import mutation_finder
 from functools import partial
 from collections import namedtuple, defaultdict
 
+
 def main(settings, env):
 
     # Log the inital message
-    log_message('Starting running presence/absence resistance algorithm', 1)
+    log_message('Starting running presence/absence resistance algorithm')
 
     # Write the version number of the database and algorithm
     log_algo_version(
@@ -61,17 +60,17 @@ def main(settings, env):
     
     # Load the resistance sequences:
     log_message('Loading resistance sequences and associated'
-        ' information...', 1)
+        ' information...')
     
     # Load it
     sequence_database = DbInfo(
         database_path, seq_parser = resistance_seq_parser)
 
     # Loading the sequences
-    log_message('Successfully loaded sequences', 2)
+    log_message('Successfully loaded sequences')
 
     # We were successful in running the algorithm
-    log_message('Running resistance algorithm...', 1)
+    log_message('Running resistance algorithm...')
 
     # Run the presence detector
     results = presence_detector(
@@ -89,7 +88,7 @@ def main(settings, env):
     results_out, notes_out = sequence_database.results_parser(results, f=results_parser)
 
     # Write the results out
-    log_message('Writing results out...', 1)
+    log_message('Writing results out...')
 
     write_results('resistance.json', json.dumps(results_out))
     
@@ -126,7 +125,7 @@ def main(settings, env):
     write_results('resistance.antibios.json', json.dumps(notes_out))
     
     # Success!
-    log_message('Successfully ran resistance algorithm!', 2)
+    log_message('Successfully ran resistance algorithm!')
 
 gene_parser = re.compile(r'(^[a-zA-Z]*)(?:-\w*)?(?:-[\d]+$)')
 re_comp_type = type(gene_parser)

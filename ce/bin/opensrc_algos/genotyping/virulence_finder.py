@@ -17,7 +17,6 @@ from tools.environment import (
     log_message,
     log_error,
     log_progress,
-    log_ephemeral,
     log_algo_version,
     write_results
 )
@@ -69,7 +68,7 @@ def sequence_parser(header, sequence, sep=':'):
 
 def main(settings, env):
 
-    log_message('Starting running presence/absence virulence finder algorithm', 1)
+    log_message('Starting running presence/absence virulence finder algorithm')
 
     # Write the version number of the database and algorithm
     log_algo_version(
@@ -83,11 +82,11 @@ def main(settings, env):
 
     # Log it
     log_message('Database path found at: {}'.format(
-        database_path), 2)
+        database_path))
 
     # Load the resistance sequences:
     log_message('Loading virulence finder sequences and associated'
-        ' information...', 3)
+        ' information...')
 
 
     virulence_seq_parser = partial(sequence_parser, sep=':')
@@ -97,10 +96,10 @@ def main(settings, env):
         database_path, seq_parser = virulence_seq_parser)
 
     # Loading the sequences
-    log_message('Successfully loaded sequences', 3)
+    log_message('Successfully loaded sequences')
 
     # We were successful in running the algorithm
-    log_message('Running virulence finder algorithm...', 2)
+    log_message('Running virulence finder algorithm...')
 
     # Run the presence detector
     results = presence_detector(
@@ -118,9 +117,9 @@ def main(settings, env):
     results_out = sequence_database.results_parser(results)
 
     # Write the results out
-    log_message('Writing results out...', 2)
+    log_message('Writing results out...')
 
     write_results('virulence.json', json.dumps(results_out))
 
     # Success!
-    log_message('Successfully ran virulence finder algorithm!', 2)
+    log_message('Successfully ran virulence finder algorithm!')

@@ -14,7 +14,6 @@ from collections import namedtuple
 from environment import (
     log_message,
     log_error,
-    log_ephemeral,
     check_dir,
     valid_dir
 )
@@ -81,7 +80,7 @@ def create_blastdb(fastaflname, dbpath, env):
     exit_code = child.returncode
     
     # Log what we got out of the blastn
-    log_ephemeral(stdout.strip())
+    log_message(stdout.strip())
 
     if exit_code:
         log_error(stderr.strip())
@@ -162,7 +161,7 @@ def align_blast_nodb(query, subject, settings, env):
     exit_code = child.returncode
 
     # Log what we got out of the blastn
-    log_ephemeral(stdout.strip())
+    log_message(stdout.strip())
 
     if exit_code:
         log_error(stderr.strip())
@@ -245,7 +244,7 @@ def align_blast(query, blastdb, settings, env):
     exit_code = child.returncode
 
     # Log what we got out of the blastn
-    log_ephemeral(stdout.strip())
+    log_message(stdout.strip())
 
     if exit_code:
         log_error(stderr.strip())

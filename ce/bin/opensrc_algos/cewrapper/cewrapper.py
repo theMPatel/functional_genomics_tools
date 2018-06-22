@@ -25,7 +25,8 @@ if base_path not in sys.path:
 
 from tools.environment import (
     Environment,
-    Logger,
+    initialize_logging
+    get_stack_len
     ResultWriter,
     log_message,
     log_progress,
@@ -103,7 +104,7 @@ def main_throw_args(args, remaining, execable_modules):
     env = Environment(vars(args))
 
     # Set up the logger
-    Logger(env.logdir)
+    initialize_logging(env.logdir)
 
     # Set up the results writer
     ResultWriter(env.resultsdir)
@@ -113,7 +114,7 @@ def main_throw_args(args, remaining, execable_modules):
 
     # Write the args out
     for key, value in vars(args).iteritems():
-        log_message('{} -> {}'.format(key, value), 1)
+        log_message('{} -> {}'.format(key, value), -(get_stack_len()-1))
 
     # The name of the genotyping module
     module_name = execable_modules.modules[args.algorithm]

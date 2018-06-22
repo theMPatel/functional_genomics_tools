@@ -16,7 +16,6 @@ from tools.environment import (
     log_message,
     log_error,
     log_progress,
-    log_ephemeral,
     log_algo_version,
     write_results
 )
@@ -81,17 +80,17 @@ def main(settings, env):
 
     # Load the resistance sequences:
     log_message('Loading pathotype sequences and associated'
-        ' information...', 1)
+        ' information...')
 
     # Load it
     sequence_database = DbInfo(
         database_path, seq_parser = sequence_parser)
 
     # Loading the sequences
-    log_message('Successfully loaded sequences', 2)
+    log_message('Successfully loaded sequences')
 
     # We were successful in running the algorithm
-    log_message('Running pathotype algorithm...', 1)
+    log_message('Running pathotype algorithm...')
 
     # Run the presence detector
     results = presence_detector(
@@ -124,14 +123,14 @@ def main(settings, env):
     final_pathotypes['results'] = list(final_pathotypes['results'])
 
     # Write the results out
-    log_message('Writing results out...', 1)
+    log_message('Writing results out...')
 
     write_results('ecoli.pathotype_genotypes.json', json.dumps(results_out))
 
     write_results('ecoli.pathotype_pathotypes.json', json.dumps(final_pathotypes))
 
     # Success!
-    log_message('Successfully ran pathotype algorithm!', 2)
+    log_message('Successfully ran ecoli pathotype algorithm!')
 
 def get_pathotypes(loci):
 

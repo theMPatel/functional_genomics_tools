@@ -10,6 +10,7 @@
 
 import os
 import sys
+import logging
 import argparse
 import importlib
 import traceback
@@ -21,12 +22,16 @@ from tools.tools import (
     parse_fasta
 )
 
+import tools.environment
+
 from tools.environment import (
     log_message,
     log_error,
+    log_exception,
     log_progress,
     log_algo_version,
-    sanitize_path
+    sanitize_path,
+    get_stack_len
 )
 
 from tools.config import Config
@@ -83,8 +88,7 @@ def run_genotyper(module_name, settings, env):
         module.main(settings, module_env)
 
     except:
-        log_error('Error running genotyper: {}'.format(module_name))
-        log_error(traceback.format_exc())
+        log_exception('Error running genotyper: {}'.format(module_name))
 
 def setup_genotyper(genotyper, module_name, organism_config, env, data):
 
@@ -112,13 +116,17 @@ def setup_genotyper(genotyper, module_name, organism_config, env, data):
 
 def main(args, remaining, env, module_settings):
 
+    # Set the base message_depth
+    tools.environment.base_depth = -(get_stack_len()-1)
+
     log_message('Initializing genotyping algorithm')
     
     # Log the algorithm version
     log_algo_version(
         algo_version = None,
         settings = module_settings,
-        env = env
+        env = env,
+        base_depth=base_depth
     )
 
     # Get the arguments that we need
@@ -127,13 +135,14 @@ def main(args, remaining, env, module_settings):
     for key, value in vars(specific_args).iteritems():
 
         if isinstance(value, list):
-            log_message(key, 1)
+            
+            log_message(key, extra=1)
 
             for v in value:
-                log_message('-> {}'.format(v),2)
+                log_message('-> {}'.format(v), extra=2)
 
         else:
-            log_message('{} - > {}'.format(key, value), 1)
+            log_message('{} - > {}'.format(key, value), extra=1)
 
     # Make sure the path is a __realpath__
     config_filepath = env.get_sharedpath(specific_args.configfile)
@@ -157,7 +166,7 @@ def main(args, remaining, env, module_settings):
     # Check to see if the file is gzipped
     if specific_args.query.endswith('.gz'):
 
-        log_message('Found gzipped query, unzipping...', 1)
+        log_message('Found gzipped query, unzipping...', extra=1)
 
         try:
             unzip_file(specific_args.query, query_filename)
@@ -175,14 +184,14 @@ def main(args, remaining, env, module_settings):
     for read in specific_args.query_reads:
         if read.endswith('.gz'):
 
-            log_message('Unzipping {}'.format(read), 1)
+            log_message('Unzipping {}'.format(read), extra=1)
             try:
 
                 new_file_name = os.path.basename(read).replace('.gz', '')
                 new_file = os.path.join(env.localdir, new_file_name)
                 unzip_file(read, new_file)
             except:
-                log_error('Could not unzip read file: {}'.format(read))
+                log_error('Could not unzip read file: {}'.format(read). extra=1)
 
             else:
                 unpacked_reads.append(new_file)
@@ -190,14 +199,14 @@ def main(args, remaining, env, module_settings):
     specific_args.query_reads = unpacked_reads
 
     # Load the query file into memory for future analysis
-    log_message('Loading query into memory....', 1)
+    log_message('Loading query into memory....')
     cached_query = parse_fasta(query_filename)
 
     # If we are succesfull tell them
-    log_message('Successfully loaded query fasta!', 2)
+    log_message('Successfully loaded query fasta!', extra=1)
 
     # The query is good!
-    log_message('Query is ready to be analyzed', 1)
+    log_message('Query is ready to be analyzed')
 
     # Ready to rock n' roll!
     log_message('Performing genotyping analysis')

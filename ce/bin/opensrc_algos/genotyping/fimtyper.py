@@ -16,7 +16,6 @@ from tools.environment import (
     log_message,
     log_error,
     log_progress,
-    log_ephemeral,
     log_algo_version,
     write_results
 )
@@ -51,7 +50,7 @@ def sequence_parser(header, sequence, sep = '_'):
 
 def main(settings, env):
 
-    log_message('Starting running presence/absence fimtyper algorithm', 1)
+    log_message('Starting running presence/absence fimtyper algorithm')
 
     # Write the version number of the database and algorithm
     log_algo_version(
@@ -69,17 +68,17 @@ def main(settings, env):
 
     # Load the resistance sequences:
     log_message('Loading fimtyper sequences and associated'
-        ' information...', 1)
+        ' information...')
 
     # Load it
     sequence_database = DbInfo(
         database_path, seq_parser = sequence_parser)
 
     # Loading the sequences
-    log_message('Successfully loaded sequences', 2)
+    log_message('Successfully loaded sequences')
 
     # We were successful in running the algorithm
-    log_message('Running fimtyper algorithm...', 1)
+    log_message('Running fimtyper algorithm...')
 
     # Run the presence detector
     results = presence_detector(
@@ -97,9 +96,9 @@ def main(settings, env):
     results_out = sequence_database.results_parser(results)
 
     # Write the results out
-    log_message('Writing results out...', 1)
+    log_message('Writing results out...')
 
     write_results('fimtyper_genotypes.json', json.dumps(results_out))
 
     # Success!
-    log_message('Successfully ran fimtyper algorithm!', 2)
+    log_message('Successfully ran fimtyper algorithm!')

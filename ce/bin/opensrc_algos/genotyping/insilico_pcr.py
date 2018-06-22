@@ -12,7 +12,6 @@ from tools.environment import (
     log_message,
     log_error,
     log_progress,
-    log_ephemeral,
     write_results,
     valid_dir,
     log_algo_version
@@ -80,7 +79,7 @@ def sequence_parser(line):
 def main(settings, env):
 
     # Log the initial message
-    log_message('Starting running insilico PCR algorithm', 1)
+    log_message('Starting running insilico PCR algorithm')
     
     # Set the initial version information
     log_algo_version(
@@ -94,21 +93,21 @@ def main(settings, env):
 
     # Log it
     log_message('Database path found at: {}'.format(
-        database_path), 2)
+        database_path))
 
     # Let's load it all
     log_message('Loading insilico PCR targets and associated'
-        ' information', 3)
+        ' information')
 
     sequence_database = DbInfo(
         database_path, seq_parser = sequence_parser)
 
     log_message('Successfully loaded PCR targets and associated'
-        ' information', 3)
+        ' information')
 
-    log_message('Running insilico PCR...', 2)
+    log_message('Running insilico PCR...')
 
-    log_message('Exporting PCR target database...', 3)
+    log_message('Exporting PCR target database...')
 
     # Make the path
     reference_dir = os.path.join(env.localdir, 'blastdb')
@@ -121,18 +120,18 @@ def main(settings, env):
     # Export the reference sequences for blast database creation
     sequence_database.export_sequences(reference_path)
 
-    log_message('Successfully exported reference database...', 4)
+    log_message('Successfully exported reference database...')
     
     # Create the path to the blast database
     blast_db_path = os.path.join(env.localdir, 'blastdb', 'db.fasta')
 
-    log_message('Creating blast database...', 3)
+    log_message('Creating blast database...')
 
     # Create the blast database
     create_blastdb(reference_path, blast_db_path, env)
     
     # Log that we were successful
-    log_message('Successfully created blast database!', 4)   
+    log_message('Successfully created blast database!')   
 
     blast_settings = BLASTSettings(
         task = 'blastn-short',
@@ -142,7 +141,7 @@ def main(settings, env):
         include_sequences = True
     )
 
-    log_message('BLASTing query genome against PCR targets', 3)
+    log_message('BLASTing query genome against PCR targets')
 
     # Run the alignment
     results = align_blast(
@@ -152,9 +151,9 @@ def main(settings, env):
         env
     )
 
-    log_message('Successfully BLASTed query genome against PCR targets', 4)
+    log_message('Successfully BLASTed query genome against PCR targets')
 
-    log_message('Searching for ideal primer pairs...', 3)
+    log_message('Searching for ideal primer pairs...')
 
     interpretations = find_targets(
         sequence_database,
@@ -172,11 +171,11 @@ def main(settings, env):
 
     results = sequence_database.results_parser(interpretations)
 
-    log_message('Writing results...', 3)
+    log_message('Writing results...')
 
     write_results('insilicopcr.json', json.dumps(results))
 
-    log_message('Success!', 4)
+    log_message('Success!')
 
 def find_targets(sequence_database, cached_query, blast_results, max_mismatches,
     max_nonIUPAC, max_length_deviation, percent_identity, env):
@@ -255,12 +254,12 @@ def find_targets(sequence_database, cached_query, blast_results, max_mismatches,
         regions[primer_id].append(hit)
 
     log_message('Found {} potential primer pair regions'.format(
-        len(regions)), 4)
+        len(regions)))
 
     if not len(regions):
         return None
 
-    log_message('Filtering hits...', 4)
+    log_message('Filtering hits...')
 
     # Keep only the best hits
     best = {}
@@ -302,7 +301,7 @@ def find_targets(sequence_database, cached_query, blast_results, max_mismatches,
             best[region] = hits
 
     log_message('After filtering, retained {} PCR target regions'.format(
-        len(best)), 4)
+        len(best)))
 
     if not len(best):
         return None
@@ -375,7 +374,7 @@ def find_targets(sequence_database, cached_query, blast_results, max_mismatches,
             final_results[target].append(result)
 
     log_message('Retained {} PCR targets after analysis'.format(
-        len(final_results)), 4)
+        len(final_results)))
 
     return final_results
 

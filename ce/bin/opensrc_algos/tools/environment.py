@@ -12,6 +12,10 @@
 
 import os
 import json
+import logging
+import inspect
+import collections
+import logging.handlers
 from copy import deepcopy
 from datetime import datetime
 
@@ -19,16 +23,31 @@ __all__ = [
     'sanitize_path',
     'valid_dir',
     'check_dir',
-    'time_now',
     'log_progress',
     'log_message',
     'log_error',
     'log_warning',
     'write_results',
     'Environment',
-    'Logger',
     'ResultWriter'
     ]
+
+def get_stack_len():
+    return len(inspect.stack())-1
+
+def get_message_depth(base_depth, extra=0):
+    """
+    Assumes that this is an internal logging function
+    that the call stack looks like:
+
+    worker -> log message -> check message depth
+    """
+    curr_depth = get_stack_len()-2
+
+    if base_depth >= 0:
+        base_depth = -curr_depth
+
+    return {'depth':curr_depth+base_depth+extra}
 
 def sanitize_path(path):
     # Required to remove quotes from bionumerics
@@ -49,13 +68,7 @@ def check_dir(path):
 def full_path(path):
     return os.path.abspath(os.path.realpath(path))
 
-def time_now():
-    # Returns the locale specific datetime
-    return datetime.now().strftime('%c')
-
-def make_pretty(msg, depth):
-    return ''.join(['\t']*depth) + msg + '\n'
-
+base_depth = 0
 def log_algo_version(algo_version=None, settings=None, env=None):
 
     database_version = '?'
@@ -80,50 +93,31 @@ def log_algo_version(algo_version=None, settings=None, env=None):
     algo_database_str = 'Using database version: {}'.format(
         database_version)
 
+    depth = get_message_depth(base_depth)
+
     # Log the poop out of them
-    log_message(algo_version_str, 2)
-    log_message(algo_database_str, 2)
+    logging.info(algo_version_str, {'depth' : depth})
+    logging.info(algo_database_str, {'depth' : depth})
 
-def log_progress(msg, depth=0):
-    if not Logger.current:
-        print(msg)
-    
-    else:
-        Logger.current.log_progress(msg)
+def log_progress(msg):
+    logging.log(logging.NOTSET, msg)
 
-def log_message(msg, depth=0):
-    if not Logger.current:
-        print('MSG\t' + make_pretty(msg, depth))
+def log_message(msg, extra=0):
+    depth = get_message_depth(base_depth, extra)
+    logging.info(msg, depth)
 
-    else:
-        Logger.current.log_msg(
-            time_now() + '\tMSG\t' + make_pretty(msg, depth)
-        )
+def log_error(msg, extra=0):
+    depth = get_message_depth(base_depth, extra)
+    logging.error(msg, depth)
+    logging.info('There was an error, check logs!', depth)
 
-def log_ephemeral(msg, depth=0):
-    if not Logger.current:
-        print('MSG\t' + make_pretty(msg, depth))    
+def log_warning(msg, extra=0):
+    depth = get_message_depth(base_depth, extra)
+    logging.warning(msg, depth)
 
-    else:
-        Logger.current.log_ephemeral(
-            time_now() + '\tMSG\t' + make_pretty(msg, depth)
-        )
-
-def log_error(msg, depth=0):
-    if not Logger.current:
-        print('ERR\t' + make_pretty(msg, depth))
-
-    else:
-        Logger.current.log_error(
-            time_now() + '\tERR\t' + make_pretty(msg, depth))
-
-def log_warning(msg, depth=0):
-    if not Logger.current:
-        print('WRN\t' + make_pretty(msg, depth))
-
-    else:
-        Logger.current.log_warning(
-            time_now() + '\tWRN\t' + make_pretty(msg, depth))
+def log_exception(msg, extra=0):
+    depth = get_message_depth(base_depth, extra)
+    logging.exception(msg, depth)
 
 def write_results(name, content):
     if not ResultWriter.current:
@@ -266,147 +260,169 @@ class Environment(object):
     def tempdir(self):
         return self._tempdir
 
-class Logger(object):
-    # Provides the logging functionality of the program
+class SingleWriteFileHandler(logging.FileHandler):
+    """
+    This class is to be used in order to write to
+    the progress file which is a single
+    write file (only a single message can be in this file)
+    """
+    def emit(self, record):
+        """
+        Emit a record
 
-    current = None
+        Because we want to overwrite the file everytime we 
+        emit, we will always reopen the stream before calling
+        StreamHandler.emit
+        """
 
-    def __init__(self, logdir):
-        
-        self._logdir = logdir
+        self.stream = self._open()
+        logging.StreamHandler.emit(self, record)
 
-        # Run the setup
-        self.setup()
+class ProgressFilter(object):
+    """
+    The progress file can only contain a number
+    thus if we log anything besides a single number
+    it should be thrown out for this handler
+    """
 
-        Logger.current = self
+    def filter(self, record):
+        """
+        *** FROM THE DOCS ***
+        Determine if the specified record is to be logged.
+        Is the specified record to be logged? Returns 0 for no, nonzero for
+        yes. If deemed appropriate, the record may be modified in-place.
+        """
+        try:
+            float(record.getMessage())
+        except:
+            return 0
+        else:
+            return 1
 
-    def setup(self):
+class TabbedModifier(object):
+    """
+    We can use this class to get the pretty
+    depth information into the log files by modifying
+    the log record at the filtering stage
+    """
 
-        # Make sure that the path exists
-        valid_dir(self._logdir)
+    def filter(self, record):
+        """
+        Determine if the the log record has a depth parameter in its
+        argument list
+        """
 
-        # The important files
-        self._logfiles = {
-            'messagesfile': 'messages.txt',
-            'progressfile' : '__progress__.txt',
-            'messagefile' : '__message__.txt',
-            'errorfile' : 'errors.txt',
-            'warningsfile': 'warnings.txt'
-        }
+        if isinstance(record.args, collections.Mapping) and 'depth' in \
+            record.args:
 
-        # Used to hold onto the files for logging
-        self._filehandles = {}
-
-        # Create the open file handles and save them
-        for attr, filename in self._logfiles.iteritems():
+            new_msg = ''.join(['\t']*record.args['depth']) + \
+                record.getMessage()
             
-            # Create the path of the file name
-            path = os.path.join(self._logdir, filename)
+            record.msg = new_msg
 
-            # Create the file handle
-            if attr in ['progressfile', 'messagefile']:
-                # These are write-over files, thus we close them
-                self._filehandles[attr] = self.initialize_file(path, action='close')
+        return 1
 
-            else:
-                # These are append files, keep them open
-                self._filehandles[attr] = self.initialize_file(path)
+def bn_file_prep(filename, mode='a', **kwargs):
+    """
+    This function adds a hash to the start of the file
 
-            # Set the attribute
-            setattr(self, attr, self._filehandles[attr])
+    Don't know the reasoning but bionumerics requires a hash
+    symbol at the start of a log file to know that it needs
+    to start parsing the messages 
+    
+    """
+    with open(filename, mode) as f:
+        f.write('#\n')
 
+_base_formatter = logging.Formatter(
+    fmt='%(asctime)s\t%(levelname)s\t%(message)s',
+    datefmt='%Y-%m-%d %I:%M:%S %p'
+)
 
-        # This needs to be at the start of the __messages__.txt
-        # file
-        self._log('#\n', ['messagesfile'])
+_error_formatter = logging.Formatter(
+    fmt='%(asctime)s\t%(levelname)s\n'
+        '%(filename)s\t%(lineno)d\t%(funcname)s\n'
+        '->%(message)s',
 
-    def initialize_file(self, path, action='open'):
-        # Regardless of action, this function
-        # hits the filesystem with a write of the requested
-        # file
-        if action == 'close':
-            open(path, 'w').close()
-            return path
+    datefmt='%Y-%m-%d %I:%M:%S %p'
+)
 
-        elif action == 'open':
-            return open(path, 'w', 0)
+base_logfiles = {
 
-    def _log(self, msg, files):
-        # Writes to the file, make sure your out message
-        # is ready to go before calling this method
-        # make sure files is an iterable
-        for file in files:
+    'messages': {
+        'handler'   : logging.FileHandler,
+        'filename'  : 'messages.txt',
+        'level'     : logging.INFO,
+        'filter'    : TabbedModifier(),
+        'format'    : None,
+        'file_prep'  : bn_file_prep
+    },
+    'progress' : {
+        'handler'   : SingleWriteFileHandler,
+        'filename'  : '__progress__.txt',
+        'level'     : logging.NOTSET,
+        'filter'    : ProgressFilter(),
+        'format'    : None,
+        'file_prep'  : None
+    },
+    'single_message': {
+        'handler'   : SingleWriteFileHandler,
+        'filename'  : '__message__.txt',
+        'level'     : logging.INFO,
+        'format'    : None,
+        'filter'    : None,
+        'file_prep'  : None
+    },
+    'error': {
+        'handler'   : logging.FileHandler,
+        'filename'  : 'errors.txt',
+        'level'     : logging.ERROR,
+        'format'    : _error_formatter,
+        'filter'    : None,
+        'file_prep'  : None
+    },
+    'warnings' {
+        'handler'   : logging.FileHandler,
+        'filename'  : 'warnings.txt',
+        'level'     : logging.WARNING,
+        'format'    : None,
+        'filter'    : None,
+        'file_prep'  : None
+    }
+}
 
-            attr = getattr(self, file)
+def initialize_logging(log_dir):
 
-            # __messages__ and progress files are
-            # write from beginning of files
-            # their attributes are the path to the file
-            # rather than the open file handle
+    # Make sure the dir exists
+    valid_dir(log_dir)
 
-            if isinstance(attr, basestring):
+    root = logging.getLogger()
 
-                with open(attr, 'w') as f:
-                    f.write(msg)
+    for handler, parameters in base_logfiles.iteritems():
 
-            else:
-                attr.write(msg)
+        file_path = os.path.join(
+            log_dir,
+            parameters['filename']
+        )
 
-    @classmethod
-    def close_files(cls):
+        if parameters['file_prep']:
+            if callable(parameters['file_prep']):
+                parameters['file_prep'](file_path)
 
-        file_handles = cls.current._filehandles
-
-        for file, handle in file_handles.iteritems():
-
-            if not isinstance(handle, basestring):
-                os.fsync(handle.fileno())
-                handle.close()
-
-    def log_progress(self, msg):
-        # There can only be one thing in the progress file which is the
-        # number relating to the progress
-        if isinstance(msg, int):
-            msg = str(msg)
-
-        files = ['progressfile']
-
-        self._log(msg, ['progressfile'])
-
-    def log_error(self, msg):
-
-        files = [
-            'messagesfile',
-            'messagefile',
-            'errorfile'
-        ]
+        handler = parameters['handler'](file_path)
         
-        self._log(msg, files)
+        handler.setLevel(parameters['level'])
 
-    def log_warning(self, msg):
+        if parameters['format']:
+            handler.setFormatter(parameters['format'])
+        else:
+            handler.setFormatter(_base_formatter)
 
-        files = [
-            'warningsfile'
-        ]
+        if parameters['filter']:
+            handler.addFilter(parameters['filter'])
 
-        self._log(msg, files)
 
-    def log_msg(self, msg):
-
-        files = [
-            'messagesfile',
-            'messagefile'
-        ]
-
-        self._log(msg, files)
-
-    def log_ephemeral(self, msg):
-
-        files = [
-            'messagefile'
-        ]
-
-        self._log(msg, files)
+        root.addHandler(handler)
 
 class ResultWriter(object):
 

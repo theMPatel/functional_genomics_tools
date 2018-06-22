@@ -17,7 +17,6 @@ from tools.environment import (
     log_message,
     log_error,
     log_progress,
-    log_ephemeral,
     write_results,
     valid_dir
 )
@@ -50,7 +49,7 @@ def validate(**kwargs):
                     'File not found: {}'.format(file))
 
 def parse_results(local_path, results):
-    log_message('Retrieving SeqSero results...', 2)
+    log_message('Retrieving SeqSero results...')
 
     results_path = [local_path]
 
@@ -71,7 +70,7 @@ def parse_results(local_path, results):
 
         for line in content.split('\n'):
 
-            log_message(line, 3)
+            log_message(line)
 
             if line.startswith('Predicted antigenic profile:'):
                 results['formula'] = line.split('\t')[1]
@@ -98,7 +97,7 @@ def assembly_run_seqsero(settings, env):
 
     raise NotImplementedError('Assembly based SeqSero not ready yet')
 
-    # log_message('Running SeqSero {}'.format(__version__), 2)
+    # log_message('Running SeqSero {}'.format(__version__))
 
     # local_dir = os.path.join(env.localdir, 'seq_sero')
 
@@ -117,13 +116,13 @@ def assembly_run_seqsero(settings, env):
 
     # exit_code = child.returncode
 
-    # log_ephemeral(stdout.stip())
+    # log_message(stdout.stip())
 
     # if exit_code:
     #     log_error(stderr.strip())
     #     raise RuntimeError('Error running SeqSero')
 
-    # log_message('Done running SeqSero', 3)
+    # log_message('Done running SeqSero')
 
     # return local_dir
 
@@ -144,7 +143,7 @@ def reads_run_seqsero(settings, env):
     #                       default=sam; optional)
     # 
 
-    log_message('Running SeqSero {}'.format(__version__), 2)
+    log_message('Running SeqSero {}'.format(__version__))
 
     local_dir = os.path.join(env.localdir, 'seq_sero')
 
@@ -169,7 +168,7 @@ def reads_run_seqsero(settings, env):
         log_error(stderr.strip())
         raise RuntimeError('Error running SeqSero')
 
-    log_message('Done running SeqSero', 3)
+    log_message('Done running SeqSero')
 
     return local_dir
 
@@ -267,7 +266,7 @@ def interpret_results(results, sslookup, settings, env):
 
 def main(settings, env):
 
-    log_message('Starting running CDC-SeqSero serotype prediction algorithm', 1)
+    log_message('Starting running CDC-SeqSero serotype prediction algorithm')
 
     log_algo_version(
         algo_version = __version__,

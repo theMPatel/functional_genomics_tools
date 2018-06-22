@@ -63,27 +63,27 @@ def sequence_parser(header, sequence, sep='_'):
 
 def prepare_pileup(settings, env, dbinfo):
 
-    log_message('Dumping reference sequences...', 3)
+    log_message('Dumping reference sequences...')
 
     out_file = os.path.join(env.localdir, 'bowtie', 'stxrefs.fasta')
     
     dbinfo.export_sequences(out_file)
 
-    log_message('Success!', 4)
+    log_message('Success!')
 
-    log_message('Indexing reference files...', 3)
+    log_message('Indexing reference files...')
 
     index_file = bowtie_index(out_file, env)
 
-    log_message('Success!', 4)
+    log_message('Success!')
 
-    log_message('Mapping reads against references...', 3)
+    log_message('Mapping reads against references...')
 
     sam_file = paired_bowtie2(settings.query_reads, env, index_path=index_file)
 
-    log_message('Success!', 4)
+    log_message('Success!')
 
-    log_message('Sorting sam file and creating pileup...', 3)
+    log_message('Sorting sam file and creating pileup...')
 
     bam_path = sam_view(sam_file, env)
 
@@ -91,13 +91,13 @@ def prepare_pileup(settings, env, dbinfo):
 
     pileup_path = pile_up_sam(bam_sorted, out_file, env)
 
-    log_message('Success!', 4)
+    log_message('Success!')
 
     return pileup_path
 
 def main(settings, env):
     
-    log_message('Beginning reads based STX detection algorithm', 1)
+    log_message('Beginning reads based STX detection algorithm')
 
     # Write the version number of the database and algorithm
     version_path = settings['version']
@@ -117,32 +117,36 @@ def main(settings, env):
     database_path = env.get_sharedpath(settings.database)
 
     log_message('Database path found at: {}'.format(
-        database_path), 1)
+        database_path))
 
     log_message('Loading stx gene sequences and associated'
-        ' information', 2)
+        ' information')
 
     sequence_database = DbInfo(
         database_path, seq_parser = sequence_parser)
 
-    log_message('Succesfully loaded sequences and metadata', 3)
-    log_message('Indexing references and executing mapping', 2)
+    log_message('Succesfully loaded sequences and metadata')
+    log_message('Indexing references and executing mapping')
 
     pileup_path = prepare_pileup(settings, env, sequence_database)
 
-    log_message('Searching alignments for stx subtypes', 2)
+    log_message('Searching alignments for stx subtypes')
 
     found_sequences = build_sequences(
         pileup_path, settings.min_ambiguity, settings.min_coverage, settings.max_complexity)
 
     results_out = sequence_database.results_parser(found_sequences, f=results_parser)
 
-    log_message('Found {} unique subtypes!'.format(sum(results_out['results'].values()), 3))
-    log_message('Outputting results..', 2)
+    log_message('Found {} unique subtypes!'.format(
+        sum(results_out['results'].values())
+        )
+    )
+    
+    log_message('Outputting results..')
 
     write_results('ecoli.stxfinder_genotypes.json', json.dumps(results_out))
 
-    log_message('Successfully ran STX detection algorithm!', 1)
+    log_message('Successfully ran STX detection algorithm!')
 
 def results_parser(dbinfo, results):
 
