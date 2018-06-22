@@ -83,6 +83,9 @@ def run_genotyper(module_name, settings, env):
     # Make a new tmp folder just for this special module
     module_env.localdir = os.path.join(module_env.localdir, module_full_name)
 
+    # Set the base message_depth
+    tools.environment.base_depth = -(get_stack_len())
+    
     # Run the module!
     try:
         module.main(settings, module_env)
@@ -116,17 +119,13 @@ def setup_genotyper(genotyper, module_name, organism_config, env, data):
 
 def main(args, remaining, env, module_settings):
 
-    # Set the base message_depth
-    tools.environment.base_depth = -(get_stack_len()-1)
-
     log_message('Initializing genotyping algorithm')
     
     # Log the algorithm version
     log_algo_version(
         algo_version = None,
         settings = module_settings,
-        env = env,
-        base_depth=base_depth
+        env = env
     )
 
     # Get the arguments that we need
@@ -191,7 +190,7 @@ def main(args, remaining, env, module_settings):
                 new_file = os.path.join(env.localdir, new_file_name)
                 unzip_file(read, new_file)
             except:
-                log_error('Could not unzip read file: {}'.format(read). extra=1)
+                log_error('Could not unzip read file: {}'.format(read), extra=1)
 
             else:
                 unpacked_reads.append(new_file)

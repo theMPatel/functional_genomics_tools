@@ -25,12 +25,13 @@ if base_path not in sys.path:
 
 from tools.environment import (
     Environment,
-    initialize_logging
-    get_stack_len
+    initialize_logging,
+    get_stack_len,
     ResultWriter,
     log_message,
     log_progress,
-    log_error
+    log_error,
+    log_exception
 )
 
 from tools.custom_parser import CustomParser
@@ -162,7 +163,7 @@ def main():
         main_throw()
 
     except Exception:
-        log_error(traceback.format_exc())
+        log_exception('')
         return_code = 1
 
     finally:

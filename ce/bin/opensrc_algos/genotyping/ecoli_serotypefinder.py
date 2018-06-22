@@ -56,8 +56,7 @@ def main(settings, env):
     log_algo_version(
         algo_version = None,
         settings = settings,
-        env = env,
-        base_depth = base_depth
+        env = env
     )
 
     # Get the database path

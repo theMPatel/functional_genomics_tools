@@ -104,7 +104,7 @@ class CustomParser(object):
         except ValueError:
 
             log_message('Could not parse out custom settings.'
-                ' Using default.', depth=2)
+                ' Using default.')
 
             return
 
@@ -187,25 +187,22 @@ class CustomParser(object):
 
         if client_args is None:
             log_message('No client args provided for genotyper: {}'.format(
-                genotyper),
-                depth=1
+                genotyper)
             )
 
             log_message('Using default:')
 
             for key, value in settings.iteritems():
-                log_message('{} -> {}'.format(key, value), depth=2)
+                log_message('{} -> {}'.format(key, value))
 
             return
         
         log_message('Loading client custom args for genotyper: {}'.format(
-            genotyper),
-            depth=1
-        )
+            genotyper))
 
         for key, value in client_args.iteritems():
             settings[key] = value
-            log_message('{} -> {}'.format(key, value), depth=2)
+            log_message('{} -> {}'.format(key, value))
 
 if __name__ == '__main__':
 

@@ -96,11 +96,11 @@ def log_algo_version(algo_version=None, settings=None, env=None):
     depth = get_message_depth(base_depth)
 
     # Log the poop out of them
-    logging.info(algo_version_str, {'depth' : depth})
-    logging.info(algo_database_str, {'depth' : depth})
+    logging.info(algo_version_str, depth)
+    logging.info(algo_database_str, depth)
 
 def log_progress(msg):
-    logging.log(logging.NOTSET, msg)
+    logging.log(1, msg)
 
 def log_message(msg, extra=0):
     depth = get_message_depth(base_depth, extra)
@@ -266,6 +266,9 @@ class SingleWriteFileHandler(logging.FileHandler):
     the progress file which is a single
     write file (only a single message can be in this file)
     """
+    def __init__(self, filename, mode='w', encoding=None, delay=0):
+        super(SingleWriteFileHandler, self).__init__(filename, mode, encoding, delay)
+
     def emit(self, record):
         """
         Emit a record
@@ -341,7 +344,7 @@ _base_formatter = logging.Formatter(
 
 _error_formatter = logging.Formatter(
     fmt='%(asctime)s\t%(levelname)s\n'
-        '%(filename)s\t%(lineno)d\t%(funcname)s\n'
+        '%(filename)s\t%(lineno)d\t%(funcName)s\n'
         '->%(message)s',
 
     datefmt='%Y-%m-%d %I:%M:%S %p'
@@ -354,7 +357,7 @@ base_logfiles = {
         'filename'  : 'messages.txt',
         'level'     : logging.INFO,
         'filter'    : TabbedModifier(),
-        'format'    : None,
+        'format'    : _base_formatter,
         'file_prep'  : bn_file_prep
     },
     'progress' : {
@@ -369,7 +372,7 @@ base_logfiles = {
         'handler'   : SingleWriteFileHandler,
         'filename'  : '__message__.txt',
         'level'     : logging.INFO,
-        'format'    : None,
+        'format'    : _base_formatter,
         'filter'    : None,
         'file_prep'  : None
     },
@@ -381,11 +384,11 @@ base_logfiles = {
         'filter'    : None,
         'file_prep'  : None
     },
-    'warnings' {
+    'warnings' : {
         'handler'   : logging.FileHandler,
         'filename'  : 'warnings.txt',
         'level'     : logging.WARNING,
-        'format'    : None,
+        'format'    : _base_formatter,
         'filter'    : None,
         'file_prep'  : None
     }
@@ -397,8 +400,9 @@ def initialize_logging(log_dir):
     valid_dir(log_dir)
 
     root = logging.getLogger()
+    root.setLevel(logging.NOTSET)
 
-    for handler, parameters in base_logfiles.iteritems():
+    for name, parameters in base_logfiles.iteritems():
 
         file_path = os.path.join(
             log_dir,
@@ -415,8 +419,6 @@ def initialize_logging(log_dir):
 
         if parameters['format']:
             handler.setFormatter(parameters['format'])
-        else:
-            handler.setFormatter(_base_formatter)
 
         if parameters['filter']:
             handler.addFilter(parameters['filter'])

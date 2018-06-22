@@ -16,7 +16,6 @@ from tools.environment import (
     log_algo_version,
     log_message,
     write_results,
-    time_now,
     valid_dir,
 )
 
