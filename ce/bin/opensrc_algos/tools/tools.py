@@ -292,6 +292,10 @@ def check_mismatches(seq1, seq2):
     return mismatches
 
 def parse_paired_files(readFiles):
+    """
+    Written by not me as you can see
+    """
+    
     tokens = [['_1.', '_R1_', '_R1'], ['_2.', '_R2_', '_R2']]
 
     singleFiles = []

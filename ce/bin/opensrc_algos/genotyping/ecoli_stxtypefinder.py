@@ -35,6 +35,9 @@ from .rb_detection import (
 from tools.bowtie import (
     bowtie_index,
     paired_bowtie2,
+)
+
+from tools.samtools import (
     sam_view,
     bam_sort,
     pile_up_sam
@@ -84,7 +87,15 @@ def prepare_pileup(settings, env, dbinfo):
 
     log_message('Sorting sam file and creating pileup...')
 
-    bam_path = sam_view(sam_file, env)
+    bam_path = sam_view(
+        sam_file,
+        env,
+        # Output to bam
+        '-b',
+
+        # Input is SAM format
+        '-S'
+    )
 
     bam_sorted = bam_sort(bam_path, env)
 

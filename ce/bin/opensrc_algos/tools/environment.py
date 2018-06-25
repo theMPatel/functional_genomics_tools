@@ -80,7 +80,7 @@ def full_path(path):
 # 
 base_depth = 0
 
-################################# Logging Notes #############################
+############################# Logging Notes #################################
 # 
 # The below logging functions will get the depth of the runtime stack
 # combining it with the base depth that **SHOULD** have been set at runtime
@@ -91,12 +91,13 @@ base_depth = 0
 # tracking what is basically the stack depth manually, in order to create
 # pretty log files.
 # 
-# If the stack depth is 0 or greater, then tabbed printing is disabled.
+# If base_depth is 0 or greater, then tabbed printing is disabled.
 #
 #
-# Also, if your message is logically in a higher tab depth despite being in the 
-# same function depth (like for example in an if/else block), you can specify 
-# local depth adjustments with the extra kwarg. You're welcome :)
+# Also, if your message is syntactically in a higher tab depth despite semantically 
+# being in the same depth as the preceding messagees (like for example in 
+# an if/else block), you can specify local depth adjustments with the 'extra' 
+# kwarg. You're welcome :)
 
 def log_algo_version(algo_version=None, settings=None, 
         env=None, extra=0):
