@@ -13,8 +13,6 @@ See README.md for details.
 Python is the main dynamic language used at Google. This style guide is a list
 of *dos and don'ts* for Python programs.
 
-To help you format code correctly, we've created a [settings file for
-Vim](google_python_style.vim). For Emacs, the default settings should be fine.
 
 Many teams use the [yapf](https://github.com/google/yapf/)
 auto-formatter to avoid arguing over formatting.
@@ -59,7 +57,7 @@ Make sure you run `pylint` on your code.
 Suppress warnings if they are inappropriate so that other issues are not hidden.
 To suppress warnings, you can set a line-level comment:
 
-```python {.good}
+```python
 dict = 'something awful'  # Bad Idea... pylint: disable=redefined-builtin
 ```
 
@@ -90,7 +88,7 @@ Unused argument warnings can be suppressed by deleting the variables at the
 beginning of the function. Always include a comment explaining why you are
 deleting it. "Unused." is sufficient. For example:
 
-```python {.good}
+```python
 def viking_cafe_order(spam, beans, eggs=None):
     del beans, eggs  # Unused by vikings.
     return spam + spam + spam
@@ -139,7 +137,7 @@ name with no prefix.
 
 For example the module `sound.effects.echo` may be imported as follows:
 
-```python {.good}
+```python
 from sound.effects import echo
 ...
 echo.EchoFilter(input, output, delay=0.7, atten=4)
@@ -176,7 +174,7 @@ All new code should import each module by its full package name.
 
 Imports should be as follows:
 
-```python {.good}
+```python
 # Reference in code with complete name.
 import absl.flags
 
@@ -228,7 +226,7 @@ Exceptions must follow certain conditions:
     statement. For example:
 
     
-    ```python {.good}
+    ```python
     Yes:
       def ConnectToNextPort(self, minimum):
         """Connects to the next available port.  Returns the new minimum port."""
@@ -241,7 +239,7 @@ Exceptions must follow certain conditions:
         return port
     ```
 
-    ```python {.bad}
+    ```python
     No:
       def ConnectToNextPort(self, minimum):
         """Connects to the next available port.  Returns the new minimum port."""
@@ -274,7 +272,7 @@ Exceptions must follow certain conditions:
 -   When capturing an exception, use `as` rather than a comma. For example:
 
     
-    ```python {.good}
+    ```python
     try:
       raise Error
     except Error as error:
@@ -386,7 +384,7 @@ expression, `for` clause, filter expression. Multiple `for` clauses or filter
 expressions are not permitted. Use loops instead when things get more
 complicated.
 
-```python {.good}
+```python
 Yes:
   result = []
   for x in range(10):
@@ -411,7 +409,7 @@ Yes:
       if jelly_bean.color == 'black')
 ```
 
-```python {.bad}
+```python
 No:
   result = [(x, y) for x in range(10) for y in range(5) if x * y > 10]
 
@@ -457,7 +455,7 @@ dictionaries, and files. The built-in types define iterator methods, too. Prefer
 these methods to methods that return lists, except that you should not mutate a
 container while iterating over it.
 
-```python {.good}
+```python
 Yes:  for key in adict: ...
       if key not in adict: ...
       if obj in alist: ...
@@ -465,7 +463,7 @@ Yes:  for key in adict: ...
       for k, v in dict.iteritems(): ...
 ```
 
-```python {.bad}
+```python
 No:   for key in adict.keys(): ...
       if not adict.has_key(key): ...
       for line in afile.readlines(): ...
@@ -607,7 +605,7 @@ Okay to use with the following caveat:
 Do not use mutable objects as default values in the function or method
 definition.
 
-```python {.good}
+```python
 Yes: def foo(a, b=None):
          if b is None:
              b = []
@@ -616,7 +614,7 @@ Yes: def foo(a, b: Optional[Sequence] = None):
              b = []
 ```
 
-```python {.bad}
+```python
 No:  def foo(a, b=[]):
          ...
 No:  def foo(a, b=time.time()):  # The time the module was loaded???
@@ -666,7 +664,7 @@ overridden. Thus one must make sure that accessor methods are called indirectly
 to ensure methods overridden in subclasses are called by the property (using the
 Template Method DP).
 
-```python {.good}
+```python
 Yes: import math
 
      class Square(object):
@@ -761,7 +759,7 @@ Use the "implicit" false if at all possible, e.g., `if foo:` rather than
     known to be an integer (and is not the result of `len()`) against the
     integer 0.
 
-    ```python {.good}
+    ```python
     Yes: if not users:
              print('no users')
 
@@ -776,7 +774,7 @@ Use the "implicit" false if at all possible, e.g., `if foo:` rather than
                  x = []
     ```
 
-    ```python {.bad}
+    ```python
     No:  if len(users) == 0:
              print('no users')
 
@@ -813,7 +811,7 @@ generally preferable.
 We do not use any Python version which does not support these features, so there
 is no reason not to use the new styles.
 
-```python {.good}
+```python
 Yes: words = foo.split(':')
 
      [x[1] for x in my_list if x[2] == 5]
@@ -823,7 +821,7 @@ Yes: words = foo.split(':')
      fn(*args, **kwargs)
 ```
 
-```python {.bad}
+```python
 No:  words = string.split(foo, ':')
 
      map(lambda x: x[1], filter(lambda x: x[2] == 5, my_list))
@@ -849,7 +847,7 @@ occurs, the name is treated as a global variable.
 
 An example of the use of this feature is:
 
-```python {.good}
+```python
 def get_adder(summand1):
     """Returns a function that adds numbers to a given number."""
     def adder(summand2):
@@ -870,7 +868,7 @@ experienced Lisp and Scheme (and Haskell and ML and ...) programmers.
 Can lead to confusing bugs. Such as this example based on
 [PEP-0227](http://www.google.com/url?sa=D&q=http://www.python.org/dev/peps/pep-0227/):
 
-```python {.bad}
+```python
 i = 4
 def foo(x):
     def bar():
@@ -908,7 +906,7 @@ converting ordinary methods into dynamically computed attributes. However, the
 decorator syntax allows for user-defined decorators as well. Specifically, for
 some function `my_decorator`, this:
 
-```python {.good}
+```python
 class C(object):
     @my_decorator
     def method(self):
@@ -917,7 +915,7 @@ class C(object):
 
 is equivalent to:
 
-```python {.good}
+```python
 class C(object):
     def Methodmethod(self):
         # method body ...
@@ -1051,7 +1049,7 @@ Use of `from __future__ import` statements is encouraged. All new code should
 contain the following and existing code should be updated to be compatible when
 possible:
 
-```python {.good}
+```python
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -1096,13 +1094,13 @@ modules.
 Type annotations (or "type hints") are for function or method arguments and
 return values:
 
-```python {.good}
+```python
 def func(a: int) -> List[int]:
 ```
 
 You can also declare the type of a variable using a special comment:
 
-```python {.good}
+```python
 a = SomeFunc()  # type: SomeType
 ```
 
@@ -1157,7 +1155,7 @@ Make use of Python's [implicit line joining inside parentheses, brackets and
 braces](http://docs.python.org/reference/lexical_analysis.html#implicit-line-joining).
 If necessary, you can add an extra pair of parentheses around an expression.
 
-```python {.good}
+```python
 Yes: foo_bar(self, width, height, color='black', design=None, x='foo',
              emphasis=None, highlight=0)
 
@@ -1168,19 +1166,19 @@ Yes: foo_bar(self, width, height, color='black', design=None, x='foo',
 When a literal string won't fit on a single line, use parentheses for implicit
 line joining.
 
-```python {.good}
+```python
 x = ('This will build a very long long '
      'long long long long long long string')
 ```
 
 Within comments, put long URLs on their own line if necessary.
 
-```python {.good}
+```python
 Yes:  # See details at
       # http://www.example.com/us/developer/documentation/api/content/v2.0/csv_file_name_extension_full_specification.html
 ```
 
-```python {.bad}
+```python
 No:  # See details at
      # http://www.example.com/us/developer/documentation/api/content/\
      # v2.0/csv_file_name_extension_full_specification.html
@@ -1190,20 +1188,20 @@ It is permissible to use backslash continuation when defining a `with` statement
 whose expressions span three or more lines. For two lines of expressions, use a
 nested `with` statement:
 
-```python {.good}
+```python
 Yes:  with very_long_first_expression_function() as spam, \
            very_long_second_expression_function() as beans, \
            third_thing() as eggs:
           place_order(eggs, beans, spam, beans)
 ```
 
-```python {.bad}
+```python
 No:  with VeryLongFirstExpressionFunction() as spam, \
           VeryLongSecondExpressionFunction() as beans:
        PlaceOrder(eggs, beans, spam, beans)
 ```
 
-```python {.good}
+```python
 Yes:  with very_long_first_expression_function() as spam:
           with very_long_second_expression_function() as beans:
               place_order(beans, spam)
@@ -1222,7 +1220,7 @@ It is fine, though not required, to use parentheses around tuples. Do not use
 them in return statements or conditional statements unless using parentheses for
 implied line continuation or to indicate a tuple.
 
-```python {.good}
+```python
 Yes: if foo:
          bar()
      while x:
@@ -1239,7 +1237,7 @@ Yes: if foo:
      for (x, y) in dict.items(): ...
 ```
 
-```python {.bad}
+```python
 No:  if (x):
          bar()
      if not(x):
@@ -1260,7 +1258,7 @@ you should align wrapped elements either vertically, as per the examples in the
 in which case there should be nothing after the open parenthesis or bracket on
 the first line.
 
-```python {.good}
+```python
 Yes:   # Aligned with opening delimiter
        foo = long_function_name(var_one, var_two,
                                 var_three, var_four)
@@ -1290,7 +1288,7 @@ Yes:   # Aligned with opening delimiter
        }
 ```
 
-```python {.bad}
+```python
 No:    # Stuff on first line forbidden
        foo = long_function_name(var_one, var_two,
            var_three, var_four)
@@ -1330,24 +1328,24 @@ Follow standard typographic rules for the use of spaces around punctuation.
 
 No whitespace inside parentheses, brackets or braces.
 
-```python {.good}
+```python
 Yes: spam(ham[1], {eggs: 2}, [])
 ```
 
-```python {.bad}
+```python
 No:  spam( ham[ 1 ], { eggs: 2 }, [ ] )
 ```
 
 No whitespace before a comma, semicolon, or colon. Do use whitespace after a
 comma, semicolon, or colon except at the end of the line.
 
-```python {.good}
+```python
 Yes: if x == 4:
          print(x, y)
      x, y = y, x
 ```
 
-```python {.bad}
+```python
 No:  if x == 4 :
          print(x , y)
      x , y = y , x
@@ -1356,20 +1354,20 @@ No:  if x == 4 :
 No whitespace before the open paren/bracket that starts an argument list,
 indexing or slicing.
 
-```python {.good}
+```python
 Yes: spam(1)
 ```
 
-```python {.bad}
+```python
 No:  spam (1)
 ```
 
 
-```python {.good}
+```python
 Yes: dict['key'] = list[index]
 ```
 
-```python {.bad}
+```python
 No:  dict ['key'] = list [index]
 ```
 
@@ -1379,11 +1377,11 @@ Booleans (`and, or, not`). Use your better judgment for the insertion of spaces
 around arithmetic operators but always be consistent about whitespace on either
 side of a binary operator.
 
-```python {.good}
+```python
 Yes: x == 1
 ```
 
-```python {.bad}
+```python
 No:  x<1
 ```
 
@@ -1392,12 +1390,12 @@ Only use spaces around the '=' sign defining a default parameter value
 [when a type annotation is present](#typing-default-values),
 do not use spaces around '=' for default parameter values otherwise.
 
-```python {.good}
+```python
 Yes: def complex(real, imag=0.0): return Magic(r=real, i=imag)
 Yes: def complex(real, imag: float = 0.0): return Magic(r=real, i=imag)
 ```
 
-```python {.bad}
+```python
 No:  def complex(real, imag = 0.0): return Magic(r = real, i = imag)
 No:  def complex(real, imag: float=0.0): return Magic(r = real, i = imag)
 ```
@@ -1405,7 +1403,7 @@ No:  def complex(real, imag: float=0.0): return Magic(r = real, i = imag)
 Don't use spaces to vertically align tokens on consecutive lines, since it
 becomes a maintenance burden (applies to `:`, `#`, `=`, etc.):
 
-```python {.good}
+```python
 Yes:
   foo = 1000  # comment
   long_name = 2  # comment that should not be aligned
@@ -1416,7 +1414,7 @@ Yes:
   }
 ```
 
-```python {.bad}
+```python
 No:
   foo       = 1000  # comment
   long_name = 2     # comment that should not be aligned
@@ -1527,7 +1525,7 @@ Sections should be indented two spaces, except for the heading.
 *Raises:*
 : List all exceptions that are relevant to the interface.
 
-```python {.good}
+```python
 def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
     """Fetches rows from a Bigtable.
 
@@ -1567,7 +1565,7 @@ Classes should have a docstring below the class definition describing the class.
 If your class has public attributes, they should be documented here in an
 Attributes section and follow the same formatting as a function's Args section.
 
-```python {.good}
+```python
 class SampleClass(object):
     """Summary of class here.
 
@@ -1598,7 +1596,7 @@ review](http://en.wikipedia.org/wiki/Code_review), you should comment it
 now. Complicated operations get a few lines of comments before the operations
 commence. Non-obvious ones get comments at the end of the line.
 
-```python {.good}
+```python
 # We use a weighted dictionary search to find out where i is in
 # the array.  We extrapolate position based on the largest num
 # in the array and the array size and then do binary search to
@@ -1613,7 +1611,7 @@ code.
 On the other hand, never describe the code. Assume the person reading the code
 knows Python (though not what you're trying to do) better than you do.
 
-```python {.bad}
+```python
 # BAD COMMENT: Now go through the b array and make sure whenever i occurs
 # the next element is i+1
 ```
@@ -1643,7 +1641,7 @@ punctuation, spelling, and grammar help with that goal.
 If a class inherits from no other base classes, explicitly inherit from
 `object`. This also applies to nested classes.
 
-```python {.good}
+```python
 Yes: class SampleClass(object):
          pass
 
@@ -1659,7 +1657,7 @@ Yes: class SampleClass(object):
 
 ```
 
-```python {.bad}
+```python
 No: class SampleClass:
         pass
 
@@ -1684,7 +1682,7 @@ Use the `format` method or the `%` operator for formatting strings, even when
 the parameters are all strings. Use your best judgement to decide between `+`
 and `%` (or `format`) though.
 
-```python {.good}
+```python
 Yes: x = a + b
      x = '%s, %s!' % (imperative, expletive)
      x = '{}, {}'.format(first, second)
@@ -1693,7 +1691,7 @@ Yes: x = a + b
      x = f'name: {name}; score: {n}'  # Python 3.6+
 ```
 
-```python {.bad}
+```python
 No: x = '%s%s' % (a, b)  # use + in this case
     x = '{}{}'.format(a, b)  # use + in this case
     x = first + ', ' + second
@@ -1706,7 +1704,7 @@ results in quadratic rather than linear running time. Instead, add each
 substring to a list and `''.join` the list after the loop terminates (or, write
 each substring to a `io.BytesIO` buffer).
 
-```python {.good}
+```python
 Yes: items = ['<table>']
      for last_name, first_name in employee_list:
          items.append('<tr><td>%s, %s</td></tr>' % (last_name, first_name))
@@ -1714,7 +1712,7 @@ Yes: items = ['<table>']
      employee_table = ''.join(items)
 ```
 
-```python {.bad}
+```python
 No: employee_table = '<table>'
     for last_name, first_name in employee_list:
         employee_table += '<tr><td>%s, %s</td></tr>' % (last_name, first_name)
@@ -1726,14 +1724,14 @@ or `"` and stick with it. It is okay to use the other quote character on a
 string to avoid the need to `\\` escape within the string. `gpylint` enforces
 this.
 
-```python {.good}
+```python
 Yes:
   Python('Why are you hiding your eyes?')
   Gollum("I'm scared of lint errors.")
   Narrator('"Good!" thought a happy Python reviewer.')
 ```
 
-```python {.bad}
+```python
 No:
   Python("Why are you hiding your eyes?")
   Gollum('The lint. It burns. It burns us.')
@@ -1746,13 +1744,13 @@ use `'''` for all non-docstring multi-line strings if and only if they also use
 often cleaner to use implicit line joining since multi-line strings do not flow
 with the indentation of the rest of the program:
 
-```python {.good}
+```python
   Yes:
   print("This is much nicer.\n"
         "Do it this way.\n")
 ```
 
-```python {.bad}
+```python
   No:
     print("""This is pretty ugly.
 Don't do this.
@@ -1792,7 +1790,7 @@ file is poor practice, for several reasons:
 The preferred way to manage files is using the ["with"
 statement](http://docs.python.org/reference/compound_stmts.html#the-with-statement):
 
-```python {.good}
+```python
 with open("hello.txt") as hello_file:
     for line in hello_file:
         print(line)
@@ -1801,7 +1799,7 @@ with open("hello.txt") as hello_file:
 For file-like objects that do not support the "with" statement, use
 `contextlib.closing()`:
 
-```python {.good}
+```python
 import contextlib
 
 with contextlib.closing(urllib.urlopen("http://www.python.org/")) as front_page:
@@ -1824,7 +1822,7 @@ The main purpose is to have a consistent `TODO` format that can be searched to
 find out how to get more details upon request. A `TODO` is not a commitment that
 the person referenced will fix the problem. Thus when you create a `TODO`, it is almost always your name that is given.
 
-```python {.good}
+```python
 # TODO(kl@gmail.com): Use a "*" here for string repetition.
 # TODO(Zeke) Change this to use relations.
 ```
@@ -1841,12 +1839,12 @@ Imports should be on separate lines.
 
 E.g.:
 
-```python {.good}
+```python
 Yes: import os
      import sys
 ```
 
-```python {.bad}
+```python
 No:  import os, sys
 ```
 
@@ -1856,7 +1854,7 @@ grouped with the order being most generic to least generic:
 
 1.  Python standard library imports. For example:
 
-    ```python {.good}
+    ```python
     import sys
     ```
 
@@ -1864,7 +1862,7 @@ grouped with the order being most generic to least generic:
     module or package imports. For example:
 
     
-    ```python {.good}
+    ```python
     import tensorflow as tf
     ```
 
@@ -1872,7 +1870,7 @@ grouped with the order being most generic to least generic:
     sub-package imports. For example:
 
     
-    ```python {.good}
+    ```python
     from otherproject.ai import mind
     ```
 
@@ -1881,7 +1879,7 @@ grouped with the order being most generic to least generic:
     sub-package as this file. For example:
 
     
-    ```python {.good}
+    ```python
     from myproject.backend.hgwells import time_machine
     ```
 
@@ -1889,7 +1887,7 @@ Within each grouping, imports should be sorted lexicographically, ignoring case,
 according to each module's full package path. Code may optionally place a blank
 line between import sections.
 
-```python {.good}
+```python
 import collections
 import Queue
 import sys
@@ -1919,13 +1917,13 @@ the entire statement fits on one line. In particular, you can never do so with
 `try`/`except` since the `try` and `except` can't both fit on the same line, and
 you can only do so with an `if` if there is no `else`.
 
-```python {.good}
+```python
 Yes:
 
   if foo: bar(foo)
 ```
 
-```python {.bad}
+```python
 No:
 
   if foo: bar(foo)
@@ -2126,7 +2124,7 @@ In Python, `pydoc` as well as unit tests require modules to be importable. Your
 code should always check `if __name__ == '__main__'` before executing your main
 program so that the main program is not executed when the module is imported.
 
-```python {.good}
+```python
 def main():
     ...
 
@@ -2191,7 +2189,7 @@ breaking between variables.
 
 After annotating, many of the functions will become "one parameter per line".
 
-```python {.good}
+```python
 def my_method(self,
               first_var: int,
               second_var: Foo,
@@ -2201,7 +2199,7 @@ def my_method(self,
 
 However, if everything fits on the same line, go for it.
 
-```python {.good}
+```python
 def my_method(self, first_var: int) -> int:
   ...
 ```
@@ -2209,7 +2207,7 @@ def my_method(self, first_var: int) -> int:
 If the combination of the function name, the last parameter, and the return type
 is too long, indent by 4 in a new line.
 
-```python {.good}
+```python
 def my_method(
     self, first_var: int) -> Tuple[MyLongType1, MyLongType1]:
   ...
@@ -2219,7 +2217,7 @@ When the return type does not fit on the same line as the last parameter, the
 preferred way is to indent the parameters by 4 on a new line and align the
 closing parenthesis with the def.
 
-```python {.good}
+```python
 Yes:
 def my_method(
     self, **kw_args: Optional[MyLongType]
@@ -2230,7 +2228,7 @@ def my_method(
 `pylint` allows you to move the closing parenthesis to a new line and align
 with the opening one, but this is less readable.
 
-```python {.bad}
+```python
 No:
 def my_method(self,
               **kw_args: Optional[MyLongType]
@@ -2241,7 +2239,7 @@ def my_method(self,
 As in the examples above, prefer not to break types. However, sometimes they are
 too long to be on a single line (try to keep sub-types unbroken).
 
-```python {.good}
+```python
 def my_method(
     self,
     first_var: Tuple[List[MyLongType1],
@@ -2255,7 +2253,7 @@ If a single name and type is too long, consider using an
 [alias](#typing-aliases) for the type. The last resort is to break after the
 colon and indent by 4.
 
-```python {.good}
+```python
 Yes:
 def my_function(
     long_variable_name:
@@ -2264,7 +2262,7 @@ def my_function(
   ...
 ```
 
-```python {.bad}
+```python
 No:
 def my_function(
     long_variable_name: long_module_name.
@@ -2281,7 +2279,7 @@ If you need to use a class name from the same module that is not yet defined --
 for example, if you need the class inside the class declaration, or if you use a
 class that is defined below -- use a string for the class name.
 
-```python {.good}
+```python
 class MyClass(object):
 
   def __init__(self,
@@ -2297,12 +2295,12 @@ when combining an argument annotation with a default value, use spaces around
 the = sign (but only for those arguments that have both an annotation and a
 default).
 
-```python {.good}
+```python
 Yes:
 def func(a: int = 0) -> int:
   ...
 ```
-```python {.bad}
+```python
 No:
 def func(a:int=0) -> int:
   ...
@@ -2317,13 +2315,13 @@ purposes, `None` is an alias for `NoneType`. If an argument can be `None`, it
 has to be declared! You can use `Union`, but if there is only one other type,
 `Optional` is a shortcut.
 
-```python {.good}
+```python
 Yes:
 def func(a: Optional[str]) -> str:
   ...
 ```
 
-```python {.bad}
+```python
 No:
 def func(a: Union[None, str]) -> str:
   ...
@@ -2332,7 +2330,7 @@ def func(a: Union[None, str]) -> str:
 If the default value of an argument is `None`, marking the variable `Optional`
 is optional.
 
-```python {.good}
+```python
 Yes:
 def func(a: Optional[str] = None) -> str:
   ...
@@ -2351,7 +2349,7 @@ returned tuples). If the alias is used only in this module, it should be
 
 For example, if the name of module together with the type is too long:
 
-```python {.good}
+```python
 SomeType = module_with_long_name.TypeWithLongName
 ```
 
@@ -2367,7 +2365,7 @@ You can disable type checking on a line with the special comment
 
 `pytype` has a disable option for specific errors (similar to lint):
 
-```python {.good}
+```python
 # pytype: disable=attribute-error
 ```
 
@@ -2378,7 +2376,7 @@ You can disable type checking on a line with the special comment
 If an internal variable has a type that is hard or impossible to infer, you can
 supply it as a special comment:
 
-```python {.good}
+```python
 a = SomeUndecoratedFunction()  # type: Foo
 ```
 <a id="s3.19.9-tuples"></a>
@@ -2389,7 +2387,7 @@ Unlike Lists, which can only have a single type, Tuples can have either a single
 repeated type or a set number of elements with different types. The latter is
 commonly used as return type from a function.
 
-```python {.good}
+```python
 a = [1, 2, 3]  # type: List[int]
 b = (1, 2, 3)  # type: Tuple[int, ...]
 c = (1, "2", 3.5)  # type Tuple[int, str, float]
@@ -2405,7 +2403,7 @@ function `TypeVar` is a common way to use them.
 
 Example:
 
-```python {.good}
+```python
 from typing import List, TypeVar
 T = TypeVar("T")
 ...
@@ -2415,7 +2413,7 @@ def next(l: List[T]) -> T:
 
 A TypeVar can be constrained:
 
-```python {.good}
+```python
 AddableType = TypeVar("AddableType", int, float, str)
 def add(a: AddableType, b: AddableType) -> AddableType:
   return a + b
@@ -2424,7 +2422,7 @@ def add(a: AddableType, b: AddableType) -> AddableType:
 A common predefined type variable in the `typing` module is `AnyStr`. Use it for
 arguments that can be `bytes` or `unicode`.
 
-```python {.good}
+```python
 AnyStr = TypeVar("AnyStr", bytes, unicode)
 ```
 <a id="s3.19.11-strings"></a>
@@ -2436,7 +2434,7 @@ because it means different things in Python 2 and Python 3. In Python 2, `str`
 is `bytes`; in Python 3, it is `unicode`. Whenever possible, it is best to be
 explicit:
 
-```python {.bad}
+```python
 No:
 def f(x: str) -> str:
   ...
@@ -2444,14 +2442,14 @@ def f(x: str) -> str:
 
 For code that deals with byte arrays, use `bytes`.
 
-```python {.good}
+```python
 def f(x: bytes) -> bytes:
   ...
 ```
 
 For code that processes Unicode data, use `Text`.
 
-```python {.good}
+```python
 from typing import Text
 ...
 def f(x: Text) -> Text:
@@ -2460,7 +2458,7 @@ def f(x: Text) -> Text:
 
 If the type can be either bytes or unicode, use `Union`.
 
-```python {.good}
+```python
 from typing import Text, Union
 ...
 def f(x: Union[bytes, Text]) -> Union[bytes, Text]:
@@ -2481,7 +2479,7 @@ For classes from the `typing` module, always import the class itself. You are
 explicitly allowed to import multiple specific classes on one line from the
 `typing` module. Ex:
 
-```python {.good}
+```python
 from typing import Any, Dict, Optional
 ```
 
@@ -2491,7 +2489,7 @@ not be defined in your Python code, typed or not. If there is a collision
 between a type and an existing name in a module, import it using
 `import x as y`.
 
-```python {.good}
+```python
 from typing import Any as AnyType
 ```
 
@@ -2515,7 +2513,7 @@ within an `if typing.TYPE_CHECKING:` block.
     instead if you do you not want to import `typing` at runtime.
 
 
-```python {.good}
+```python
 import typing
 ...
 if typing.TYPE_CHECKING:
@@ -2539,7 +2537,7 @@ Replace modules that create circular dependency imports with `Any`. Set an
 this module (any attribute of Any is Any). Alias definitions should be separated
 from the last import by one line.
 
-```python {.good}
+```python
 from typing import Any
 
 some_mod = Any  # some_mod.py imports this module.
