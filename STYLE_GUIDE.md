@@ -1,5 +1,6 @@
 
-# General Style Guide and Conventions
+General Style Guide and Conventions
+===================================
 
 This is the style guide for this project, follow it to the best of your ability
 The standards described here might save you time and headache in the future
@@ -11,7 +12,8 @@ Original Author: SGE
 Modifying Author: Milan Patel, mpatel5@cdc.gov
 
 
-## 1. Introduction
+1 Introduction
+==============
 
 
    1.1 Target group
