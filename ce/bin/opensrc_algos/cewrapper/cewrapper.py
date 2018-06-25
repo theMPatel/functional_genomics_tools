@@ -115,7 +115,7 @@ def main_throw_args(args, remaining, execable_modules):
 
     # Write the args out
     for key, value in vars(args).iteritems():
-        log_message('{} -> {}'.format(key, value), -(get_stack_len()-1))
+        log_message('{} -> {}'.format(key, value), 1)
 
     # The name of the genotyping module
     module_name = execable_modules.modules[args.algorithm]

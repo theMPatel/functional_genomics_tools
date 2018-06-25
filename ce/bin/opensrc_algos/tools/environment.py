@@ -68,8 +68,38 @@ def check_dir(path):
 def full_path(path):
     return os.path.abspath(os.path.realpath(path))
 
+# ############################ IMPORTANT ####################################
+
+# The below base_depth variable get's monkey patched at runtime (and it could
+# be from literally anywhere)
+# So that we can tell what depth we are based on whatever module we are 
+# running
+# 
+# By default if this value is 0, then no tabs get printed, otherwise it must be
+# a negative value (hence base depth)
+# 
 base_depth = 0
-def log_algo_version(algo_version=None, settings=None, env=None):
+
+################################# Logging Notes #############################
+# 
+# The below logging functions will get the depth of the runtime stack
+# combining it with the base depth that **SHOULD** have been set at runtime
+# to create tabbed log files that mimic the execution flow of the program
+# (AMAZING RIGHT???)
+# 
+# That way, your developer doesn't have to waste time (likely making mistakes)
+# tracking what is basically the stack depth manually, in order to create
+# pretty log files.
+# 
+# If the stack depth is 0 or greater, then tabbed printing is disabled.
+#
+#
+# Also, if your message is logically in a higher tab depth despite being in the 
+# same function depth (like for example in an if/else block), you can specify 
+# local depth adjustments with the extra kwarg. You're welcome :)
+
+def log_algo_version(algo_version=None, settings=None, 
+        env=None, extra=0):
 
     database_version = '?'
 
@@ -93,7 +123,7 @@ def log_algo_version(algo_version=None, settings=None, env=None):
     algo_database_str = 'Using database version: {}'.format(
         database_version)
 
-    depth = get_message_depth(base_depth)
+    depth = get_message_depth(base_depth, extra)
 
     # Log the poop out of them
     logging.info(algo_version_str, depth)
@@ -337,9 +367,11 @@ def bn_file_prep(filename, mode='a', **kwargs):
     with open(filename, mode) as f:
         f.write('#\n')
 
+_default_date_fmt = '%Y-%m-%d %I:%M:%S %p'
+
 _base_formatter = logging.Formatter(
     fmt='%(asctime)s\t%(levelname)s\t%(message)s',
-    datefmt='%Y-%m-%d %I:%M:%S %p'
+    datefmt=_default_date_fmt
 )
 
 _error_formatter = logging.Formatter(
@@ -347,7 +379,7 @@ _error_formatter = logging.Formatter(
         '%(filename)s\t%(lineno)d\t%(funcName)s\n'
         '->%(message)s',
 
-    datefmt='%Y-%m-%d %I:%M:%S %p'
+    datefmt=_default_date_fmt
 )
 
 base_logfiles = {
