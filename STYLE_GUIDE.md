@@ -1,72 +1,68 @@
 
-General Style Guide and Conventions
+**General Style Guide and Conventions**
 ===================================
 
-This is the style guide for this project, follow it to the best of your ability
-The standards described here might save you time and headache in the future
-
-This is a derivation of the Coding Style Guide created for the Sun Grid Engine
-project
-
-Original Author: SGE
-Modifying Author: Milan Patel, mpatel5@cdc.gov
+This is the style guide for this project, follow it to the best of your ability. The standards described here might save you time and headache in the future. This is a derivation of the Coding Style Guide created for the _Sun Grid Engine project_.
 
 
-1 Introduction
+**Original Author:** SGE
+
+**Modifying Author:** Milan Patel, mpatel5@cdc.gov
+
+
+**Introduction**
 ==============
 
 
-1.1 Target group
-----------------
+Target group
+------------
 
-   Each developer providing code for any algorithm that runs on the 
-   Calculation Engine follows the rules of this styleguide.
+      Each developer providing code for any algorithm that runs on the 
+      Calculation Engine follows the rules of this styleguide.
 
-1.2 Conventions
----------------
+Conventions
+-----------
 
-   Each rule in this style guide is part of one of the following categories:
+      Each rule in this style guide is part of one of the following categories:
 
-   Category    Description 
-   --------    ------------
-   A           ABSOLUTE MUST
+### **(A)  ABSOLUTE MUST**
 
-   It is abolutely not allowed to break one of the rules being
-   part of this category. 
-   Only those rules are part of the A category which have
-   a direct impact on stability or security of a software
-   component.
+      It is abolutely not allowed to break one of the rules being
+      part of this category. 
+      Only those rules are part of the A category which have
+      a direct impact on stability or security of a software
+      component.
 
-   M           MUST
+### (M)  MUST
 
-   Each developer has to stick to such rules. A violation
-   against one of these rules has to be discussed with project
-   leads.
+      Each developer has to stick to such rules. A violation
+      against one of these rules has to be discussed with project
+      leads.
 
-   S           SHOULD
+### (S)  SHOULD
 
-   Rules of this group should only be violated with an
-   important reason.
+      Rules of this group should only be violated with an
+      important reason.
 
-   R           RECOMMENTATION
+### (R)  RECOMMENTATION
 
-   Rules part of this category are recomendations.
+      Rules part of this category are recomendations.
 
-1.3 Usage
----------
-   (M)   All developers respect the rules defined in
-         this styleguide. All new code developed conforms to this 
-         styleguide.
+Usage
+-------
+      (M)   All developers respect the rules defined in
+            this styleguide. All new code developed conforms to this 
+            styleguide.
 
-   (R)   The initial Genotyping source code base contained a high amount of code
-         not yet conforming to the style guide.
-         Whenever existing code pieces are changed, they are made
-         conformant to the style guide.
+      (R)   The initial Genotyping source code base contained a high amount of code
+            not yet conforming to the style guide.
+            Whenever existing code pieces are changed, they are made
+            conformant to the style guide.
 
-   (M)   This styleguide will be maintained by all developers of the EDLB-CE team. Each
-         developer can suggest the addition/modification/removal of
-         rules in this styleguide. All modifications of this guide are
-         discussed with project leads.
+      (M)   This styleguide will be maintained by all developers of the EDLB-CE team. Each
+            developer can suggest the addition/modification/removal of
+            rules in this styleguide. All modifications of this guide are
+            discussed with project leads.
 
 1.4 Version
 -----------
