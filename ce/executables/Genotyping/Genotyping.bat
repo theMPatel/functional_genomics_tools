@@ -5,6 +5,7 @@
 # This script provides a general launcher for binaries. Create a copy
 # of this script, set MYNAME, and this script will invoke the
 # corresponding binary a proper environment.
+
 CE_STORAGE_CEROOT=/data/ceroot_dev
 MYNAME=opensrc_algos/cewrapper/cewrapper.py
 
@@ -59,8 +60,12 @@ fi
 
 # $@ is command line, writes cmd line to settings.txt
 echo $@ $cmdLineExtra > settings.txt
-# executes BINARY, using in code ResFinder.py settings as defined above
-/opt/python/bin/python -O $BINARY
+
+EXECUTOR=$TOOLSDIR/all_tools/python2
+
+# executes BINARY
+$EXECUTOR -O $BINARY
+
 exitCode=$?
 
 DRMERR="errors.txt"
