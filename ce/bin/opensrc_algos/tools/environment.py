@@ -32,23 +32,6 @@ __all__ = [
     'ResultWriter'
     ]
 
-def get_stack_len():
-    return len(inspect.stack())-1
-
-def get_message_depth(base_depth, extra=0):
-    """
-    Assumes that this is an internal logging function
-    that the call stack looks like:
-
-    worker -> log message -> check message depth
-    """
-    curr_depth = get_stack_len()-2
-
-    if base_depth >= 0:
-        base_depth = -curr_depth
-
-    return {'depth':curr_depth+base_depth+extra}
-
 def sanitize_path(path):
     # Required to remove quotes from bionumerics
     # caller script on Calculation Engine
@@ -70,7 +53,7 @@ def full_path(path):
 
 # ############################ IMPORTANT ####################################
 
-# The below base_depth variable get's monkey patched at runtime (and it could
+# The below base_depth variable get's set at runtime (and it could
 # be from literally anywhere)
 # So that we can tell what depth we are based on whatever module we are 
 # running
@@ -79,6 +62,35 @@ def full_path(path):
 # a negative value (hence base depth)
 # 
 base_depth = 0
+
+def set_base_depth(value):
+    global base_depth
+
+    if isinstance(value, int):
+        base_depth = value
+    
+    else:
+        # We could do type coercion for floats but then
+        # that would be improper usage, better not to assume
+        # the intention of the user
+        raise ValueError('Base depth value must be int type')
+
+def get_stack_len():
+    return len(inspect.stack())-1
+
+def get_message_depth(base_depth, extra=0):
+    """
+    Assumes that this is an internal logging function
+    that the call stack looks like:
+
+    worker -> log message -> check message depth
+    """
+    curr_depth = get_stack_len()-2
+
+    if base_depth >= 0:
+        base_depth = -curr_depth
+
+    return {'depth':curr_depth+base_depth+extra}
 
 ############################# Logging Notes #################################
 # 

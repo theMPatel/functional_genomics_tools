@@ -31,7 +31,8 @@ from tools.environment import (
     log_progress,
     log_algo_version,
     sanitize_path,
-    get_stack_len
+    get_stack_len,
+    set_base_depth
 )
 
 from tools.config import Config
@@ -84,7 +85,7 @@ def run_genotyper(module_name, settings, env):
     module_env.localdir = os.path.join(module_env.localdir, module_full_name)
 
     # Set the base message_depth
-    tools.environment.base_depth = -(get_stack_len())
+    set_base_depth(-(get_stack_len()))
     
     # Run the module!
     try:
