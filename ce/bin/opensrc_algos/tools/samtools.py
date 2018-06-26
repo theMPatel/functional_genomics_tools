@@ -196,6 +196,7 @@ def bam_sort(bam_file, env):
     samtools_path = full_path(
         os.path.join(
             env.toolsdir,
+            'all_tools',
             'samtools'
         )
     )
@@ -255,6 +256,7 @@ def pile_up_sam(bam_sorted, reference, env):
     samtools_path = full_path(
         os.path.join(
             env.toolsdir,
+            'all_tools',
             'samtools'
         )
     )
