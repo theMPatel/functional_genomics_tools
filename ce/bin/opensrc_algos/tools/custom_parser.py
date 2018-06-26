@@ -193,7 +193,7 @@ class CustomParser(object):
             log_message('Using default:')
 
             for key, value in settings.iteritems():
-                log_message('{} -> {}'.format(key, value))
+                log_message('{} -> {}'.format(key, value), extra=1)
 
             return
         
@@ -202,7 +202,7 @@ class CustomParser(object):
 
         for key, value in client_args.iteritems():
             settings[key] = value
-            log_message('{} -> {}'.format(key, value))
+            log_message('{} -> {}'.format(key, value), extra=1)
 
 if __name__ == '__main__':
 

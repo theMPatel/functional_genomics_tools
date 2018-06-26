@@ -66,7 +66,7 @@ def create_blastdb(fastaflname, dbpath, env):
 
     # Tell the user that you are doing this
     log_message('BLASTDatabase: Running command: {}'.format(
-        ' '.join(blastdb_args)), 3)
+        ' '.join(blastdb_args)))
 
     # Call the subprocess
     child = sp.Popen(blastdb_args, stdout=sp.PIPE, stderr=sp.PIPE)
@@ -80,13 +80,14 @@ def create_blastdb(fastaflname, dbpath, env):
     exit_code = child.returncode
     
     # Log what we got out of the blastn
-    log_message(stdout.strip())
+    for line in stdout.strip().split('\n'):
+        log_message(line, extra=1)
 
     if exit_code:
         log_error(stderr.strip())
         raise RuntimeError('Error making BLASTDatabase')
 
-    log_message('Done creating BLASTDatabase!', 3)
+    log_message('Done creating BLASTDatabase!')
 
 def align_blast_nodb(query, subject, settings, env):
     # There are differences in results between using
@@ -148,7 +149,7 @@ def align_blast_nodb(query, subject, settings, env):
     ]
 
     log_message('BLASTn running command: {}'.format(
-    ' '.join(blastn_args)), 3)
+    ' '.join(blastn_args)))
 
     # Run the blast command
     child = sp.Popen(blastn_args, stdout=sp.PIPE, stderr=sp.PIPE)
@@ -161,13 +162,14 @@ def align_blast_nodb(query, subject, settings, env):
     exit_code = child.returncode
 
     # Log what we got out of the blastn
-    log_message(stdout.strip())
+    for line in stdout.strip().split('\n'):
+        log_message(line, extra=1)
 
     if exit_code:
         log_error(stderr.strip())
         raise RuntimeError('Error running BLASTn')
 
-    log_message('Done running BLASTn!', 3)
+    log_message('Done running BLASTn!')
 
     # Return the results as a GenotypeResults object
     return GenotypeResults(outputfile, settings, 'blast')
@@ -231,7 +233,7 @@ def align_blast(query, blastdb, settings, env):
     ]
 
     log_message('BLASTn running command: {}'.format(
-        ' '.join(blastn_args)), 3)
+        ' '.join(blastn_args)))
 
     # Run the blast command
     child = sp.Popen(blastn_args, stdout=sp.PIPE, stderr=sp.PIPE)
@@ -244,13 +246,14 @@ def align_blast(query, blastdb, settings, env):
     exit_code = child.returncode
 
     # Log what we got out of the blastn
-    log_message(stdout.strip())
+    for line in stdout.strip().split('\n'):
+        log_message(line, extra=1)
 
     if exit_code:
         log_error(stderr.strip())
         raise RuntimeError('Error running BLASTn')
 
-    log_message('Done running BLASTn!', 3)
+    log_message('Done running BLASTn!')
 
     # Return the results as a GenotypeResults object
     return GenotypeResults(outputfile, settings, 'blast')
