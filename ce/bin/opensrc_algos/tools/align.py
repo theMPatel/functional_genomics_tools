@@ -40,7 +40,7 @@ def create_blastdb(fastaflname, dbpath, env):
     # This is where the tools should be
     # if that is not the case, either fix it in the filesystem
     # or fix the path below, whichever is easier
-    makeblastdb = os.path.join(toolspath, 'ncbi-blast/bin/makeblastdb')
+    makeblastdb = os.path.join(toolspath, 'all_tools/makeblastdb')
 
     if _platform == 'nt':
         makeblastdb += '.exe'
@@ -119,7 +119,7 @@ def align_blast_nodb(query, subject, settings, env):
     outputfile = os.path.join(env.localdir, 'blastout.txt')
 
     # blastn path
-    blastn = os.path.join(env.toolsdir, 'ncbi-blast/bin/blastn')
+    blastn = os.path.join(env.toolsdir, 'all_tools/blastn')
 
     if _platform == 'nt':
         blastn += '.exe'
@@ -206,7 +206,7 @@ def align_blast(query, blastdb, settings, env):
     outputfile = os.path.join(env.localdir, 'blastout.txt')
 
     # blastn path
-    blastn = os.path.join(env.toolsdir, 'ncbi-blast/bin/blastn')
+    blastn = os.path.join(env.toolsdir, 'all_tools/blastn')
 
     if _platform == 'nt':
         blastn += '.exe'

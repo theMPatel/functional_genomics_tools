@@ -49,7 +49,11 @@ def run_ani(query, env):
         valid_dir(dirc)
 
     # Make sure that the ANI references symlink exists
-    ani_references = os.path.join(env.shareddir, 'ani_references', 'species.tsv')
+    ani_references = os.path.join(
+                        env.shareddir, 
+                        'ani_references', 
+                        'species.tsv'
+                    )
 
     if not os.path.exists(ani_references):
         raise RuntimeError('Missing ANI references in shared directory: {}'.format(
