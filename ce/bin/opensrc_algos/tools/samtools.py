@@ -142,6 +142,9 @@ def sam_view(sam_file, env, *args, **kwargs):
 
     cmd_args = [samtools_path, 'view']
 
+    # TODO: Replace with new functions that validate args/kwargs and add
+    #       to cmd_args in-place
+
     for arg in args:
         if not isinstance(arg, basestring) or not \
             arg.startswith('-'):

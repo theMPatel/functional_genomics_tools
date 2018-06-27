@@ -13,16 +13,23 @@ import sys
 import gzip
 import json
 import shutil
+import binascii
 import subprocess as sp
 from string import maketrans
 from itertools import izip, combinations
 from collections import OrderedDict, namedtuple
+
+from .environment import (
+    log_message,
+    log_warning
+)
 
 _FASTAEXTS = ['.fna', '.fasta', '.fsa']
 _GENBANKEXTS = ['.gb', '.gbk']
 _FWD = 'ATGCRYSWKMBDHVN'
 _REV = 'TACGYRSWMKVHDBN'
 _COMPLEMENT = maketrans(_FWD, _REV)
+_GZIP_START = b'1f8b'
 
 # Get the codons for any particular amino acid
 _AA_BACK_TRANSLATE = {
@@ -87,6 +94,66 @@ for nuc, pairs in _NUC_SIBLINGS.iteritems():
 def get_non_iupac(f_set):
     return _SET_TO_NON_ACTG.get(f_set, None)
 
+def add_cmdline_args(executable_name, cmd_args, args):
+    """
+    Modifies a list used for commandline args in place while
+    doing some basic validations
+    """
+
+    if not isinstance(cmd_args, list):
+        raise TypeError('Commandline args destination '
+                        'must be of type list, got'
+                        ' {} instead'.format(type(cmd_args))
+                        )
+
+    if not isinstance(args, (tuple, list)):
+        raise TypeError('Args to add must be in list or tuple format'
+                        ' got {} instead'.format(type(args))
+                        )
+    for arg in args:
+
+        if not isinstance(arg, basestring) or not \
+            arg.startswith('-'):
+
+            log_warning('Invalid argument provided for {}:'
+                        ' {}, skipping..'.format(executable_name, arg))
+            continue
+
+        cmd_args.append(arg)
+
+def add_cmdline_kwargs(executable_name, cmd_args, kwargs):
+    """
+    Modifies a list used for commandline args in place while
+    doing some basic validations
+    """
+
+    if not isinstance(cmd_args, list):
+        raise TypeError('Commandline args destination '
+                        'must be of type list, got'
+                        ' {} instead'.format(type(cmd_args))
+                        )
+
+    if not isinstance(kwargs, dict):
+        raise TypeError('Key word args to add must be in dict format'
+                        ' got {} instead'.format(type(kwargs))
+                        )
+
+    for arg, value in kwargs.iteritems():
+        if not isinstance(arg, basestring) or not \
+            arg.startswith('-'):
+
+            log_warning('Invalid argument provided for {}:'
+                        ' {} -. {}, skipping..'.format(
+                                                    executable_name, 
+                                                    arg,
+                                                    value
+                                                )
+                        )
+
+            continue
+
+        cmd_args.extend([arg, value])
+
 def popen(args, stdout=None, stderr=None, cwd=None, shell=False):
 
     if not isinstance(args, list):
@@ -102,7 +169,71 @@ def popen(args, stdout=None, stderr=None, cwd=None, shell=False):
 
     out, err = child.communicate()
 
-    return child.returncode, out, err 
+    return child.returncode, out, err
+
+def check_gzipped(file_path):
+
+    # Read the first two bytes to see if it is the gzip
+    # header
+    with open(file_path, 'rb') as f:
+        head = f.read(2)
+
+    return binascii.hexlify(head) == _GZIP_START
+
+def get_all_file_exts(path):
+    root, ext = os.path.splitext(path)
+
+    if not ext:
+        return root, []
+
+    all_exts = [ext]
+
+    real_root, exts = get_all_file_exts(root)
+    exts += all_exts
+
+    return real_root, exts
+
+
+def process_seq_file(file_path, load=True):
+
+    log_message('Checking provided sequence file...')
+
+    if not os.path.exists(path):
+        raise RuntimeError('No assembly path exists for path: {}'
+                            ''.format(str(path)))
+
+    out_path = file_path
+
+    # First check to see if the data is gzipped:
+    if check_gzipped(file_path) or file_path.endswith('.gz'):
+
+        log_message('Found gzipped file!')
+
+        root, exts = get_all_file_exts(file_path)
+
+        if exts and exts[0] != '.gz':
+            out_path = root + exts[0]
+        else:
+            out_path = root + '.default_ext'
+
+        unzip_file(file_path, out_path)
+
+    if load:
+        return parse_fasta(out_path)
+    else:
+        return out_path
+
+def process_read_files(reads, load=False):
+
+    if not isinstance(reads, list):
+        raise TypeError('Read files must be provided as a'
+            ' list of paths')
+
+    to_return = []
+    for read in reads:
+        to_return.append(process_seq_file(read, load=load))
+
+    return to_return
 
 def unzip_file(fl_in, fl_out):
     # Assumes that the file is a gzipped

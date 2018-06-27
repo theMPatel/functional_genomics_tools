@@ -271,5 +271,3 @@ def main(args, remaining, env, module_settings):
             env,
             data
         )
-
-

@@ -26,6 +26,7 @@ BLASTSettings = namedtuple('BLASTSettings', [
 
 _platform = os.name
 
+# TODO 
 def create_blastdb(fastaflname, dbpath, env):
 
     toolspath = env.toolsdir

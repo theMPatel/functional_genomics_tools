@@ -1,10 +1,12 @@
 {
-    "modules" : {
-        "genotyping": "genotyping.genotyping"
-    },
-
-    "genotyping": {
-        "version" : "[SHAREDDIR]/Genotyping/version.json"
-    }
-
+  "modules": {
+    "genotyping": "genotyping.genotyping",
+    "contamination": "contamination.contamination_detection"
+  },
+  "genotyping": {
+    "version": "[SHAREDDIR]/Genotyping/version.json"
+  },
+  "contamination_detection": {
+    "version": "[SHAREDDIR]/Contamination/version.json"
+  }
 }
