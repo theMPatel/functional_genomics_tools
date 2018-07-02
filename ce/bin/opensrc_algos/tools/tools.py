@@ -222,7 +222,7 @@ def process_seq_file(file_path, load=True):
         if exts and exts[0] != '.gz':
             out_path = root + exts[0]
         else:
-            out_path = root + '.default_ext'
+            out_path = root + '.fasta'
 
         log_message('Unzipping...', extra=1)
         

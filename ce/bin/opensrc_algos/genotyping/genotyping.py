@@ -155,7 +155,7 @@ def main(args, remaining, env, module_settings):
     query_filename = specific_args.query
     
     # Just so that logging is nice in this section
-    set_base_depth(-1)
+    set_base_depth(-(get_stack_len())+1)
     
     log_message('Checking query file...')
 
