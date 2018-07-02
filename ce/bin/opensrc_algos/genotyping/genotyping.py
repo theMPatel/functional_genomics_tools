@@ -154,19 +154,22 @@ def main(args, remaining, env, module_settings):
     # before running blast
     query_filename = specific_args.query
     
-    # Just so that logging is nice in this section
-    set_base_depth(-(get_stack_len())+1)
-    
     log_message('Checking query file...')
+
+    # Just so that logging is nice in this section
+    set_base_depth(-(get_stack_len()))
 
     query_filename, cached_query = process_seq_file(query_filename, load=True)
 
-    log_message('Checking read files...')
+    log_message('Checking read files...', extra=-1)
     
     unpacked_reads = process_read_files(specific_args.query_reads, load=False)
     unpacked_reads = [read[0] for read in unpacked_reads]
 
     specific_args.query_reads = unpacked_reads
+
+    # Reset it back to normal
+    set_base_depth(0)
 
     # The query is good!
     log_message('Query is ready to be analyzed')
