@@ -236,6 +236,8 @@ def write_results(name, content):
     else:
         ResultWriter.current.add_result(name, content)
 
+_ALGO_VERSION_TOKEN = '[ALGOVERSIONDIR]'
+_DB_VERSION_TOKEN = '[DBVERSIONDIR]'
 class Environment(object):
 
     def __init__(self, settings):
@@ -269,11 +271,34 @@ class Environment(object):
         if not path:
             return ''
 
-        version_dir = os.path.dirname(self.toolsdir)
-        path = path.replace('[VERSIONDIR]', version_dir)
+        if _ALGO_VERSION_TOKEN in path:
+            
+            version_dir = os.path.join(
+                            os.path.dirname(self.toolsdir),
+                            'versions'
+                        )
 
-        path = os.path.normpath(path)
+            path = path.replace(
+                            _ALGO_VERSION_TOKEN,
+                            version_dir
+                            )
+            
+            path = os.path.normpath(path)
 
+        elif _DB_VERSION_TOKEN in path:
+            
+            version_dir = os.path.join(
+                            os.path.dirname(self.shareddir),
+                            'versions'
+                        )
+
+            path = path.replace(
+                            _DB_VERSION_TOKEN,
+                            version_dir
+                            )
+
+            path = os.path.normpath(path)
+            
         return path
 
     def copy(self):
