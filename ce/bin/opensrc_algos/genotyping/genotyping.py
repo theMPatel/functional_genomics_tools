@@ -19,7 +19,9 @@ from tools.tools import (
     unzip_file,
     is_fasta,
     fasta_iterator,
-    parse_fasta
+    parse_fasta,
+    process_seq_file,
+    process_read_files
 )
 
 import tools.environment
@@ -132,7 +134,7 @@ def main(args, remaining, env, module_settings):
 
     # Get the arguments that we need
     specific_args = parse_settings(args, remaining)
-    
+
     log_algo_params(vars(specific_args))
 
     # Make sure the path is a __realpath__
@@ -150,51 +152,18 @@ def main(args, remaining, env, module_settings):
 
     # Make sure the query genome is in fasta format
     # before running blast
-    query_filename = os.path.join(env.localdir, 'query.fasta')
+    query_filename = specific_args.query
 
     log_message('Checking query file...')
 
-    # Check to see if the file is gzipped
-    if specific_args.query.endswith('.gz'):
-
-        log_message('Found gzipped query, unzipping...', extra=1)
-
-        try:
-            unzip_file(specific_args.query, query_filename)
-
-        except:
-
-            raise RuntimeError('Cannot perform genotyping, the input'
-                ' file looks like a .gz file but cannot be unzipped.')
-    else:
-
-        query_filename = specific_args.query
+    query_filename, cached_query = process_seq_file(query_filename, load=True)
 
     log_message('Checking read files...')
-    unpacked_reads = []
-    for read in specific_args.query_reads:
-        if read.endswith('.gz'):
-
-            log_message('Unzipping {}'.format(read), extra=1)
-            try:
-
-                new_file_name = os.path.basename(read).replace('.gz', '')
-                new_file = os.path.join(env.localdir, new_file_name)
-                unzip_file(read, new_file)
-            except:
-                log_error('Could not unzip read file: {}'.format(read), extra=1)
-
-            else:
-                unpacked_reads.append(new_file)
+    
+    unpacked_reads = process_read_files(specific_args.query_reads, load=False)
+    unpacked_reads = [read[0] for read in unpacked_reads]
 
     specific_args.query_reads = unpacked_reads
-
-    # Load the query file into memory for future analysis
-    log_message('Loading query into memory....')
-    cached_query = parse_fasta(query_filename)
-
-    # If we are succesfull tell them
-    log_message('Successfully loaded query fasta!', extra=1)
 
     # The query is good!
     log_message('Query is ready to be analyzed')

@@ -203,7 +203,8 @@ def get_all_file_exts(path):
 
 def process_seq_file(file_path, load=True):
 
-    log_message('Checking provided sequence file...')
+    log_message('Checking provided '
+                'sequence file: {}'.format(file_path))
 
     if not os.path.exists(path):
         raise RuntimeError('No file exists for path: {}'
@@ -214,7 +215,7 @@ def process_seq_file(file_path, load=True):
     # First check to see if the data is gzipped:
     if check_gzipped(file_path) or file_path.endswith('.gz'):
 
-        log_message('Found gzipped file!')
+        log_message('Found gzipped file!', extra=1)
 
         root, exts = get_all_file_exts(file_path)
 
@@ -223,7 +224,7 @@ def process_seq_file(file_path, load=True):
         else:
             out_path = root + '.default_ext'
 
-        log_message('Unzipping...')
+        log_message('Unzipping...', extra=1)
         
         try:
             unzip_file(file_path, out_path)
@@ -233,10 +234,10 @@ def process_seq_file(file_path, load=True):
             raise
 
     if load:
-        return parse_fasta(out_path)
+        return out_path, parse_fasta(out_path)
 
     else:
-        return out_path
+        return out_path, None
 
 def process_read_files(reads, load=False):
 

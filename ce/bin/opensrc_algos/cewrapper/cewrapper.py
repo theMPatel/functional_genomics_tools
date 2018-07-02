@@ -31,7 +31,8 @@ from tools.environment import (
     log_message,
     log_progress,
     log_error,
-    log_exception
+    log_exception,
+    log_algo_params
 )
 
 from tools.custom_parser import CustomParser
@@ -114,8 +115,7 @@ def main_throw_args(args, remaining, execable_modules):
     log_message('Initializing cewrapper..')
 
     # Write the args out
-    for key, value in vars(args).iteritems():
-        log_message('{} -> {}'.format(key, value), 1)
+    log_algo_params(vars(args))
 
     # The name of the genotyping module
     module_name = execable_modules.modules[args.algorithm]
