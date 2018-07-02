@@ -206,7 +206,7 @@ def process_seq_file(file_path, load=True):
     log_message('Checking provided '
                 'sequence file: {}'.format(file_path))
 
-    if not os.path.exists(path):
+    if not os.path.exists(file_path):
         raise RuntimeError('No file exists for path: {}'
                             ''.format(str(path)))
 

@@ -153,7 +153,10 @@ def main(args, remaining, env, module_settings):
     # Make sure the query genome is in fasta format
     # before running blast
     query_filename = specific_args.query
-
+    
+    # Just so that logging is nice in this section
+    set_base_depth(-1)
+    
     log_message('Checking query file...')
 
     query_filename, cached_query = process_seq_file(query_filename, load=True)
