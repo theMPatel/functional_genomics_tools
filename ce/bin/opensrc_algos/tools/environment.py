@@ -19,6 +19,8 @@ import logging.handlers
 from copy import deepcopy
 from datetime import datetime
 
+from .config import Settings
+
 __all__ = [
     'sanitize_path',
     'valid_dir',
@@ -166,7 +168,7 @@ def log_algo_version(algo_version=None, settings=None,
 
     version_path = settings['version']
 
-    if isinstance(version_path, collections.Mapping):
+    if isinstance(version_path, Settings):
 
         algo_path = version_path.get('algorithm', '')
         db_path = version_path.get('database', '')
