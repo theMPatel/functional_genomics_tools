@@ -168,10 +168,12 @@ def log_algo_version(algo_version=None, settings=None,
 
     version_path = settings['version']
 
+    depth = get_message_depth(base_depth, extra)
+
     if isinstance(version_path, Settings):
 
-        algo_path = version_path.get('algorithm', '')
-        db_path = version_path.get('database', '')
+        algo_path = version_path.algorithm
+        db_path = version_path.database
 
         versions = {
             'algorithm' : env.get_version_path(algo_path),
@@ -195,7 +197,12 @@ def log_algo_version(algo_version=None, settings=None,
             with open(algo_path, 'r') as f:
                 version_info['algorithm'] = f.read().strip()
 
-    depth = get_message_depth(base_depth, extra)
+    else:
+        logging.info('Could not get '
+                    'version information: {}'.format(str(version_path)),
+                    depth
+                    )
+        return
 
     for key, value in version_info.iteritems():
         out_str = 'Using {} version: {}'.format(key, value)
@@ -245,6 +252,10 @@ class Environment(object):
         self.setup(settings)
 
     def get_sharedpath(self, path):
+        
+        if not path:
+            return ''
+
         # Make sure to replace the environment location
         path = path.replace('[SHAREDDIR]', os.path.dirname(self.shareddir))
         
@@ -254,6 +265,10 @@ class Environment(object):
         return path
 
     def get_version_path(self, path):
+
+        if not path:
+            return ''
+
         version_dir = os.path.dirname(self.toolsdir)
         path = path.replace('[VERSIONDIR]', version_dir)
 
