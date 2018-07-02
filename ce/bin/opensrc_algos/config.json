@@ -4,7 +4,7 @@
     "contamination": "contamination.contamination_detection"
   },
   "genotyping": {
-    "version": "[SHAREDDIR]/Genotyping/version.json"
+    "version": "[VERSIONDIR]/genotyper/version.txt"
   },
   "contamination_detection": {
     "version": "[SHAREDDIR]/Contamination/version.json"

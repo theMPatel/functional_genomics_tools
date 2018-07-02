@@ -166,7 +166,7 @@ def log_algo_version(algo_version=None, settings=None,
 
     version_path = settings['version']
 
-    if version_path is not None:
+    if isinstance(version_path, collections.Mapping):
 
         algo_path = version_path.get('algorithm', '')
         db_path = version_path.get('database', '')
@@ -178,10 +178,20 @@ def log_algo_version(algo_version=None, settings=None,
 
         for key, path in versions.iteritems():
 
+            if not os.path.isfile(path):
+                continue
+
             with open(path, 'r') as f:
                 info = f.read().strip()
 
             version_info[key] = info
+    
+    elif isinstance(version_path, basestring):
+        algo_path = env.get_version_path(version_path)
+
+        if os.path.exists(algo_path):
+            with open(algo_path, 'r') as f:
+                version_info['algorithm'] = f.read().strip()
 
     depth = get_message_depth(base_depth, extra)
 
