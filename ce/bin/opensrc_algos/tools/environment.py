@@ -51,6 +51,10 @@ def check_dir(path):
 def full_path(path):
     return os.path.abspath(os.path.realpath(path))
 
+def check_nonempty_file(path):
+    return os.path.exists(path) and \
+            os.stat(path).st_size > 0
+
 # ############################ IMPORTANT ####################################
 
 # The below base_depth variable get's set at runtime (and it could

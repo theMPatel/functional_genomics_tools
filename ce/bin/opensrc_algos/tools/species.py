@@ -19,6 +19,12 @@ from .environment import (
     valid_dir
 )
 
+from tools.tools import (
+    popen,
+    add_cmdline_args,
+    add_cmdline_kwargs
+)
+
 from collections import namedtuple
 
 ANILine = namedtuple('ANILine', [
@@ -28,6 +34,7 @@ ANILine = namedtuple('ANILine', [
     'taxonomy'
 ])
 
+# TODO - Update to use popen function
 def run_ani(query, env):
 
     log_message('Running ANI', 2)
@@ -211,6 +218,40 @@ class ANIParser(object):
             return best_hit
 
         return
+
+def run_midas_species(env, *args, **kwargs):
+
+    out_dir = os.path.join(env.localdir, 'midas')
+
+    valid_dir(out_dir)
+
+    midas_path = os.path.join(
+        env.toolsdir,
+        'all_tools',
+        'run_midas.py'
+    )
+
+    if not os.path.exists(midas_path):
+        raise RuntimeError('Missing MIDAS executable in toolsdir')
+
+    cmd_args = [sys.executable, midas_path, 'species', out_dir]
+
+    add_cmdline_args('midas species', cmd_args, args)
+    add_cmdline_kwargs('run_midas_species', cmd_args, args)
+
+    log_message('Running midas species args: {}'.format(
+                ' '.join(cmd_args)))
+
+    return_code, out, err = popen(cmd_args)
+
+    for line in out.strip().split('\n'):
+        log_message(line, extra=1)
+
+    if return_code:
+        log_error(err.strip())
+        raise RuntimeError('Error running midas')
+
+    return out_dir
 
 if __name__ == '__main__':
 

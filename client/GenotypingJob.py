@@ -1148,7 +1148,9 @@ class GenotypingJob(SingleEntryExecutableJob):
         }
 
         for table_name, results_name in tables_needed.iteritems():
-            self.build_pretty_table(table_name, results[results_name])
+
+            if results_name in results:
+                self.build_pretty_table(table_name, results[results_name])
 
         return True
     

@@ -21,7 +21,9 @@ from collections import OrderedDict, namedtuple
 
 from .environment import (
     log_message,
-    log_warning
+    log_warning,
+    log_exception,
+    log_error
 )
 
 _FASTAEXTS = ['.fna', '.fasta', '.fsa']
@@ -152,7 +154,7 @@ def add_cmdline_kwargs(executable_name, cmd_args, kwargs):
 
             continue
 
-        cmd_args.extend([arg, value])
+        cmd_args.extend([arg, str(value)])
 
 def popen(args, stdout=None, stderr=None, cwd=None, shell=False):
 
@@ -193,13 +195,12 @@ def get_all_file_exts(path):
 
     return real_root, exts
 
-
 def process_seq_file(file_path, load=True):
 
     log_message('Checking provided sequence file...')
 
     if not os.path.exists(path):
-        raise RuntimeError('No assembly path exists for path: {}'
+        raise RuntimeError('No file exists for path: {}'
                             ''.format(str(path)))
 
     out_path = file_path
@@ -216,10 +217,18 @@ def process_seq_file(file_path, load=True):
         else:
             out_path = root + '.default_ext'
 
-        unzip_file(file_path, out_path)
+        log_message('Unzipping...')
+        
+        try:
+            unzip_file(file_path, out_path)
+
+        except:
+            log_error('Unable to unzip query file!')
+            raise
 
     if load:
         return parse_fasta(out_path)
+
     else:
         return out_path
 
@@ -422,6 +431,7 @@ def check_mismatches(seq1, seq2):
 
     return mismatches
 
+# TODO rewrite to fit with code-base
 def parse_paired_files(readFiles):
     """
     Written by not me as you can see
