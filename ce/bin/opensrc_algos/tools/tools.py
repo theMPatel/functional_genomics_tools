@@ -19,7 +19,10 @@ from string import maketrans
 from itertools import izip, combinations
 from collections import OrderedDict, namedtuple
 
+from Bio import SeqIO
+
 from .environment import (
+    full_path,
     log_message,
     log_warning,
     log_exception,
@@ -158,7 +161,7 @@ def add_cmdline_kwargs(executable_name, cmd_args, kwargs):
 
 def popen(args, stdout=None, stderr=None, cwd=None, shell=False):
 
-    if not isinstance(args, list):
+    if not isinstance(args, list) or not args:
         raise RuntimeError('Provided arguments must be of type list')
 
     if not stderr:
@@ -166,6 +169,9 @@ def popen(args, stdout=None, stderr=None, cwd=None, shell=False):
 
     if not stdout:
         stdout = sp.PIPE
+
+    if os.path.isfile(args[0]):
+        args[0] = full_path(args[0])
 
     child = sp.Popen(args, stdout=stdout, stderr=stderr, cwd=cwd, shell=shell)
 
@@ -484,3 +490,23 @@ def counter(l):
 
     return c
 
+def combine_fastas(inputFastaList, outputFasta):
+    fastaRecords = list()
+
+    for fastaFL in inputFastaList:
+        handle=None
+        if os.path.splitext(fastaFL)[1] == ".gz":
+            handle = gzip.open(fastaFL, 'rU')
+        else:
+            handle = open(fastaFL, 'rU')
+        for record in SeqIO.parse(handle, "fasta"):
+            fastaRecords.append(record)
+        handle.close()
+
+    fastaIDs = [record.id for record in fastaRecords]
+
+    assert len(set(fastaIDs)) == len(fastaIDs),"There are some non-unique reference names!"
+
+    SeqIO.write(fastaRecords, outputFasta, "fasta")
+
+    return outputFasta

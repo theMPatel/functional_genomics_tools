@@ -30,6 +30,7 @@ from tools.environment import (
     log_exception,
     log_progress,
     log_algo_version,
+    log_algo_params,
     sanitize_path,
     get_stack_len,
     set_base_depth
@@ -131,18 +132,8 @@ def main(args, remaining, env, module_settings):
 
     # Get the arguments that we need
     specific_args = parse_settings(args, remaining)
-
-    for key, value in vars(specific_args).iteritems():
-
-        if isinstance(value, list):
-            
-            log_message(key, extra=1)
-
-            for v in value:
-                log_message('-> {}'.format(v), extra=2)
-
-        else:
-            log_message('{} - > {}'.format(key, value), extra=1)
+    
+    log_algo_params(vars(specific_args))
 
     # Make sure the path is a __realpath__
     config_filepath = env.get_sharedpath(specific_args.configfile)

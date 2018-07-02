@@ -49,7 +49,10 @@ def check_dir(path):
     return os.path.isdir(path)
 
 def full_path(path):
-    return os.path.abspath(os.path.realpath(path))
+    return os.path.realpath(
+                os.path.expanduser(
+                    os.path.expandvars(path)
+                ))
 
 def check_nonempty_file(path):
     return os.path.exists(path) and \
@@ -110,41 +113,82 @@ def get_message_depth(base_depth, extra=0):
 # If base_depth is 0 or greater, then tabbed printing is disabled.
 #
 #
-# Also, if your message is syntactically in a higher tab depth despite semantically 
-# being in the same depth as the preceding messagees (like for example in 
-# an if/else block), you can specify local depth adjustments with the 'extra' 
-# kwarg. You're welcome :)
+# Also, if your message is syntactically in a higher tab depth despite 
+# semantically being in the same depth as the preceding messagees
+# (like for example in an if/else block), you can specify local depth 
+# adjustments with the 'extra' kwarg. You're welcome :)
+
+def log_algo_params(params, extra=1):
+    if isinstance(params, collections.Mapping):
+        for key, value in params.iteritems():
+
+            if isinstance(value, list):
+                log_message('-> {}'.format(key), extra=extra)
+
+                for v in value:
+                    log_message('-> {}'.format(v), extra=extra+1)
+            else:
+                log_message('{} - > {}'.format(key, value), extra=extra)
+    
+    elif isinstance(params, (tuple, list)):
+
+        for element in params:
+            log_message('-> {}'.format(element), extra=extra)
+
+    else:
+        # https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable
+        # *** Above is from python 3 docs, practice should still apply to python 2.7 ***
+        # 
+        # Checking isinstance(obj, Iterable) detects classes that are 
+        # registered as Iterable or that have an __iter__() method, but it does
+        # not detect classes that iterate with the __getitem__() method. The
+        # only reliable way to determine whether an object is iterable is to call 
+        # iter(obj).
+        try:
+            iterator = iter(params)
+
+        except TypeError as e:
+            log_error('Cannot log parameters for '
+                        'non-iterable type: {}'.format(type(params)))
+            raise
+
+        else:
+            for element in iterator:
+                log_message(str(element), extra=extra)
 
 def log_algo_version(algo_version=None, settings=None, 
         env=None, extra=0):
 
-    database_version = '?'
+    version_info = {
+        'algorithm' : '?',
+        'database' : '?'
+    }
 
     version_path = settings['version']
 
     if version_path is not None:
 
-        version_path = env.get_sharedpath(version_path)
+        algo_path = version_path.get('algorithm', '')
+        db_path = version_path.get('database', '')
 
-        with open(version_path, 'r') as f:
+        versions = {
+            'algorithm' : env.get_version_path(algo_path),
+            'database' : env.get_version_path(db_path) 
+        }
 
-            version_info = json.load(f)
+        for key, path in versions.iteritems():
 
-        algo_version = version_info.get('algorithm', algo_version)
-        database_version = version_info.get('database', '?')
+            with open(path, 'r') as f:
+                info = f.read().strip()
 
-    # Create the version strings for output
-    algo_version_str = 'Using algorithm version: {}'.format(
-        algo_version)
-
-    algo_database_str = 'Using database version: {}'.format(
-        database_version)
+            version_info[key] = info
 
     depth = get_message_depth(base_depth, extra)
 
-    # Log the poop out of them
-    logging.info(algo_version_str, depth)
-    logging.info(algo_database_str, depth)
+    for key, value in version_info.iteritems():
+        out_str = 'Using {} version: {}'.format(key, value)
+        logging.info(out_str, depth)
+
 
 def log_progress(msg):
     logging.log(1, msg)
@@ -193,6 +237,14 @@ class Environment(object):
         path = path.replace('[SHAREDDIR]', os.path.dirname(self.shareddir))
         
         # normalize the path, just in case
+        path = os.path.normpath(path)
+
+        return path
+
+    def get_version_path(self, path):
+        version_dir = os.path.dirname(self.toolsdir)
+        path = path.replace('[VERSIONDIR]', version_dir)
+
         path = os.path.normpath(path)
 
         return path
