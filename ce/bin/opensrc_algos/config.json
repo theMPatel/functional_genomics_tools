@@ -1,12 +1,16 @@
 {
   "modules": {
     "genotyping": "genotyping.genotyping",
-    "contamination": "contamination.contamination_detection"
+    "contamination": "contamination.contamination_detection",
+    "data_fetcher" : "data_fetcher.data_fetcher"
   },
   "genotyping": {
     "version": "[ALGOVERSIONDIR]/genotyper/version.txt"
   },
   "contamination_detection": {
-    "version": "[ALGOVERSIONDIR]/Contamination/version.json"
+    "version": "[ALGOVERSIONDIR]/contamination/version.json"
+  },
+  "data_fetcher" : {
+    "version": "[ALGOVERSIONDIR]/data-fetcher/version.json"
   }
 }

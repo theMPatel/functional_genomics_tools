@@ -491,6 +491,7 @@ def counter(l):
 
     return c
 
+# TODO rewrite to fit with code-base
 def combine_fastas(inputFastaList, outputFasta):
     fastaRecords = list()
 

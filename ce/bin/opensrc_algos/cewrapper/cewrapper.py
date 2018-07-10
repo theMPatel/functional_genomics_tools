@@ -11,7 +11,8 @@
 import json
 import argparse 
 import importlib
-import os, sys
+import os
+import sys
 import traceback
 
 this_file = os.path.realpath(__file__)
@@ -26,7 +27,7 @@ if base_path not in sys.path:
 from tools.environment import (
     Environment,
     initialize_logging,
-    get_stack_len,
+    graceful_shutdown_logging,
     ResultWriter,
     log_message,
     log_progress,
@@ -39,7 +40,7 @@ from tools.custom_parser import CustomParser
 from tools.config import Settings
 
 if __debug__:
-    globals()['pdb'] = __import__('pdb')
+    import pdb
 
 class MyArgumentParser(argparse.ArgumentParser):
 
@@ -86,6 +87,8 @@ def parse_cmdline():
         with open(genotyper_settings_path, 'r') as f:
             genotyper_settings = json.load(f)
 
+    # TODO REPLACE THIS FUNCTIONALITY
+    # 
     # This will store all of the args globally in
     # the CustomParser class
     CustomParser(genotyper_settings)
@@ -173,8 +176,8 @@ if __name__=='__main__':
     # Get the return value of the algorithm
     retval = main()
 
-    # Close the logger file
-    Logger.close_files()
+    # Clear our logging contexts
+    graceful_shutdown_logging()
 
     # Exit
     sys.exit(retval)

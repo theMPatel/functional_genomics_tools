@@ -295,7 +295,7 @@ results_to_fields = {
 # when creating a BioNumerics GUI element. It is later parsed and 
 # split to get the value. Thus:
 # 
-# insilicopcr-max_iupac_mismatch as the ID
+# insilicopcr-max_iupac_mismatch as the ID of a GUI element
 
 attr_joiner = '-'
 
@@ -979,7 +979,7 @@ class GenotypingJob(SingleEntryExecutableJob):
 
         for key in results:
             try:
-                results[key] = json.loads(results[key])
+                results[key] = json.loads(base64.b64decode(results[key]))
             except:
                 raise RuntimeError('Could not parse genotyping results for entry: {}'.format(
                     self.Entry.Key))

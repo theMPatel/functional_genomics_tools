@@ -10,6 +10,7 @@
 #
 ###################################################################
 
+import base64
 import os
 import json
 import logging
@@ -116,7 +117,7 @@ def get_message_depth(base_depth, extra=0):
 #
 #
 # Also, if your message is syntactically in a higher tab depth despite 
-# semantically being in the same depth as the preceding messagees
+# semantically being in the same depth as the preceding messages
 # (like for example in an if/else block), you can specify local depth 
 # adjustments with the 'extra' kwarg. You're welcome :)
 
@@ -208,6 +209,8 @@ def log_algo_version(algo_version=None, settings=None,
         out_str = 'Using {} version: {}'.format(key, value)
         logging.info(out_str, depth)
 
+def graceful_shutdown_logging():
+    logging.shutdown()
 
 def log_progress(msg):
     logging.log(1, msg)
@@ -229,12 +232,12 @@ def log_exception(msg, extra=0):
     depth = get_message_depth(base_depth, extra)
     logging.exception(msg, depth)
 
-def write_results(name, content):
+def write_results(name, content, b64encode=False):
     if not ResultWriter.current:
         print('{} -> {}'.format(name, content))
 
     else:
-        ResultWriter.current.add_result(name, content)
+        ResultWriter.current.add_result(name, content, b64encode)
 
 _ALGO_VERSION_TOKEN = '[ALGOVERSIONDIR]'
 _DB_VERSION_TOKEN = '[DBVERSIONDIR]'
@@ -585,14 +588,19 @@ class ResultWriter(object):
 
     def __init__(self, resultsdir):
         self._resultsdir = resultsdir
-
         valid_dir(self._resultsdir)
-
         ResultWriter.current = self
 
-    def add_result(self, name, content):
-
+    def add_result(self, name, content, b64encode):
         path = os.path.join(self._resultsdir, name)
+        out = content
+
+        if b64encode:
+            
+            try:
+                out = base64.b64encode(content)
+            except:
+                log_warning('Failed to b64encode results!')
 
         with open(path, 'w') as f:
-            f.write(content)
+            f.write(out)

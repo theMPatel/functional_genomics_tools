@@ -164,11 +164,9 @@ def main(args, remaining, env, module_settings):
     log_message('Checking read files...', extra=-1)
     
     unpacked_reads = process_read_files(specific_args.query_reads, load=False)
-    unpacked_reads = [read[0] for read in unpacked_reads]
+    specific_args.query_reads = [read[0] for read in unpacked_reads]
 
-    specific_args.query_reads = unpacked_reads
-
-    # Reset it back to normal
+    # Turn off pretty logging
     set_base_depth(0)
 
     # The query is good!
