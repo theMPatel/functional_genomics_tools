@@ -137,7 +137,15 @@ def change_owner(path, uid=_UID, guid=_GUID):
     os.chown(path, uid, guid)
 
 def copy_func(src, dst):
-    shutil.copy2(src, dst)
+    try:
+        shutil.copy2(src, dst)
+    except IOError as e:
+
+        if e.errno != errno.ENOENT:
+            raise
+
+        os.makedirs(os.path.dirname(dst))
+        shutil.copy2(src, dst)
 
 def dos2unix(filepath):
     dos2unix = ['dos2unix', filepath]
