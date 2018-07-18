@@ -1,5 +1,15 @@
 #//$autorun;event=PostCreateMainWin
 
+###################################################################
+#
+# Genotyping Job plugin for all organisms for Bionumerics
+# 
+# Author: Milan Patel
+# Contact: mpatel5@cdc.gov
+# Version 1.0
+#
+###################################################################
+
 #imports
 import bns
 import re
@@ -313,6 +323,8 @@ class TabPagesDlg(Dlg.Dialogs):
         # and its settings
 
         def dlg_input(genotyper, setting, default, typ, style, OnChange=None):
+            # Here tp (for type) could be anything. Like for example monkey.
+            # just think about that
 
             if style == 'input':
                 return Dlg.Input(
