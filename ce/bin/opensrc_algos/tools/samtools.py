@@ -114,7 +114,7 @@ class SamtoolsFilter(object):
     def filter_flag(self):
         return str(self._filter_flag)
     
-def sam_view(sam_file, env, *args, kwargs=None):
+def sam_view(sam_file, env, kwargs=None, *args):
     """
     This function takes care of the input/output for SAM file
     just provide the args and keyword args you want. Returns
