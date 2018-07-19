@@ -232,7 +232,7 @@ def log_exception(msg, extra=0):
     depth = get_message_depth(base_depth, extra)
     logging.exception(msg, depth)
 
-def write_results(name, content, b64encode=False):
+def write_results(name, content, b64encode=True):
     if not ResultWriter.current:
         print('{} -> {}'.format(name, content))
 
