@@ -302,3 +302,4 @@ def pile_up_sam(bam_sorted, reference, env):
         raise RuntimeError('Missing pileup_path')
 
     return pileup_path
+    
