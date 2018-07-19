@@ -965,7 +965,7 @@ class GenotypingJob(SingleEntryExecutableJob):
         # Call the appropriate value
         funcs[organism]()
     
-    #process job results
+    # Process job results
     def Process(self, calcComm, xml=None):
         #fetch the results
         jobDisplay = "result of {0} of entry {1}".format(GenotypingJob.GetExecutableDisplayName(), self.Entry.Key)
@@ -983,7 +983,8 @@ class GenotypingJob(SingleEntryExecutableJob):
         bns.Util.Program.AddActionLog("Done processing  {0}".format(jobDisplay))
         
         return True
-    # implementation of the processing
+    
+    # Implementation of the processing
     def _Process(self, results):
 
         if not len( results ):
