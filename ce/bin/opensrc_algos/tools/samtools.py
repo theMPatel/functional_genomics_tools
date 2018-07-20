@@ -23,6 +23,10 @@ from .environment import (
     full_path
 )
 
+from .bowtie import (
+    bowtie_index
+)
+
 class SamtoolsFilter(object):
     """
     Use this class to create filter objects for sam files to pass to
@@ -299,7 +303,4 @@ def pile_up_sam(bam_sorted, reference, env):
     pileup_path = full_path(os.path.join(parent_dir, pileup_name))
 
     if not os.path.exists(pileup_path):
-        raise RuntimeError('Missing pileup_path')
-
-    return pileup_path
-    
+        raise RuntimeError('Missing
