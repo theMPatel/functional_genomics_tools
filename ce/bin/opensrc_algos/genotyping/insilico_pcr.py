@@ -257,7 +257,7 @@ def find_targets(sequence_database, cached_query, blast_results, max_mismatches,
         len(regions)))
 
     if not len(regions):
-        return None
+        return regions
 
     log_message('Filtering hits...')
 
@@ -304,7 +304,7 @@ def find_targets(sequence_database, cached_query, blast_results, max_mismatches,
         len(best)))
 
     if not len(best):
-        return None
+        return best
 
     final_results = defaultdict(list)
 
