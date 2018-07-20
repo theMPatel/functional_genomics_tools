@@ -8,6 +8,7 @@
 #
 ###################################################################
 
+import base64
 import os
 import sys
 import gzip
@@ -187,6 +188,16 @@ def check_gzipped(file_path):
         head = f.read(2)
 
     return binascii.hexlify(head) == _GZIP_START
+
+def check_b64encoded(string):
+    try:
+        base64.decodestring(string)
+    
+    except binascii.Error:
+        return False
+
+    else:
+        return True
 
 def get_all_file_exts(path):
     root, ext = os.path.splitext(path)

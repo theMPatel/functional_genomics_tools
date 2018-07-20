@@ -303,4 +303,7 @@ def pile_up_sam(bam_sorted, reference, env):
     pileup_path = full_path(os.path.join(parent_dir, pileup_name))
 
     if not os.path.exists(pileup_path):
-        raise RuntimeError('Missing
+        raise RuntimeError('Missing pileup_path')
+
+    return pileup_path
+    

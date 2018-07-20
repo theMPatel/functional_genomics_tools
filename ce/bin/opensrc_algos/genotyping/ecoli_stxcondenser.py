@@ -8,6 +8,7 @@
 #
 ###################################################################
 
+import base64
 import os
 import re
 import json
@@ -18,6 +19,10 @@ from tools.environment import (
     log_progress,
     log_algo_version,
     write_results
+)
+
+from tools.tools import (
+    check_b64encoded
 )
 
 flnames = {
@@ -76,8 +81,14 @@ def main(settings, env):
             continue
 
         with open(flpath, 'r') as f:
-            mod_results = json.load(f)
+            # mod_results = json.load(f)
+            data = f.read()
 
+        if check_b64encoded(data):
+            mod_results = json.loads(base64.b64decode(data))
+        else:
+            mod_results = json.loads(data)
+        
         mod_brief_results = mod_results.get('results', {})
 
         if not mod_brief_results:
