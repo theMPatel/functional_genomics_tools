@@ -41,7 +41,7 @@ def create_blastdb(fastaflname, dbpath, env):
     # This is where the tools should be
     # if that is not the case, either fix it in the filesystem
     # or fix the path below, whichever is easier
-    makeblastdb = os.path.join(toolspath, 'all_tools/makeblastdb')
+    makeblastdb = os.path.join(toolspath, 'all_tools/ncbi-blast/bin/makeblastdb')
 
     if _platform == 'nt':
         makeblastdb += '.exe'

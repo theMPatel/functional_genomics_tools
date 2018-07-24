@@ -95,9 +95,9 @@ default_settings = {
             "search_fragments": False
         },
         "insilicopcr": {
-            "max_mismatches": 3,
-            "max_nonIUPAC": 3,
-            "percent_identity": 70.0,
+            "max_mismatches": 1,
+            "max_nonIUPAC": 2,
+            "percent_identity": 90.0,
             "max_length_deviation": 10.0
         },
         # Just use the default settings for now
@@ -603,6 +603,8 @@ class GenotypingJob(SingleEntryExecutableJob):
         self._org_abbrv = CuratorDbItf.GetCuratorItf().GetOrganismAbbrev()
         
         self._organism = organism_abbreviations.get(self._org_abbrv, None)
+
+        assert self._organism is not None
 
         self.validate_run()
 

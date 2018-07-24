@@ -25,6 +25,10 @@ from tools.species import (
     run_ani
 )
 
+from tools.tools import (
+    check_b64encoded
+)
+
 import os
 import sys
 import csv
@@ -185,7 +189,12 @@ def interpret_insilicopcr(env, ssp_antigenic, sslookup):
 
     else:
         with open(insilicopcr_path, 'r') as f:
-            pcr_results = json.load(f)
+            data = f.read()
+
+        if check_b64encoded(data):
+            pcr_results = json.loads(base64.b64decode(data))
+        else:
+            pcr_results = json.loads(data)
 
     lines = sslookup.c_table[ssp_antigenic]
     condensed_view = pcr_results.get('results', {})
