@@ -249,7 +249,7 @@ def run_midas_species(env, *args, **kwargs):
 
     if return_code:
         log_error(err.strip())
-        raise RuntimeError('Error running midas')
+        raise RuntimeError('Error running MIDAS')
 
     return out_dir
 
