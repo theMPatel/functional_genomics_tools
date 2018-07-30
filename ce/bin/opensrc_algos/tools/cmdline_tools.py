@@ -72,7 +72,7 @@ def add_cmdline_kwargs(executable_name, cmd_args, kwargs):
 
             continue
 
-        cmd_args.extend([arg, str(value)])
+        cmd_args.extend([str(arg), str(value)])
 
 def popen(args, stdout=None, stderr=None, cwd=None, shell=False):
 

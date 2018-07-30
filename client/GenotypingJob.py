@@ -101,7 +101,10 @@ default_settings = {
             "max_length_deviation": 10.0
         },
         # Just use the default settings for now
-        "ecoli.stx" :{}
+        "ecoli.stx" :{},
+        'fastqc': {
+            ''
+        }
     },
     _SALMONELLA: {
         "plasmids": {
@@ -555,7 +558,7 @@ class TabPagesDlg(Dlg.Dialogs):
             bns_settings = StoredSettings(self._organism.upper(), **all_settings)
             bns_settings.Save()
 
-class GenotypingJob(SingleEntryExecutableJob):
+class GenotypingJob(SingleEntryExecutableJob, ExecutableJob):
 
     _classID = 'Genotyping'
     _displayName = "Genotyping"

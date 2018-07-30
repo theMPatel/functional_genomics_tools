@@ -237,7 +237,7 @@ def run_midas_species(env, *args, **kwargs):
     cmd_args = [sys.executable, midas_path, 'species', out_dir]
 
     add_cmdline_args('midas species', cmd_args, args)
-    add_cmdline_kwargs('run_midas_species', cmd_args, args)
+    add_cmdline_kwargs('run_midas_species', cmd_args, kwargs)
 
     log_message('Running midas species args: {}'.format(
                 ' '.join(cmd_args)))
